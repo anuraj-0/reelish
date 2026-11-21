@@ -348,13 +348,6 @@ describe("restarts don't cost twice", () => {
   });
 });
 
-describe("Instagram in live mode (until M3)", () => {
-  it("keeps the saved examples working and explains other links aren't supported yet", () => {
-    expect(startJob("https://www.instagram.com/reel/DWZqrugEacU/", CLIENT, db).status).toBe(202);
-    expect(startJob("https://www.instagram.com/reel/Cxyz123abc/", CLIENT, db)).toEqual({ status: 400, body: { error: "instagram_not_yet" } });
-  });
-});
-
 describe("source error mapping", () => {
   it("YouTube quota and key errors aren't retried; 5xx are", async () => {
     api.youtube.push(() => Response.json({ error: { errors: [{ reason: "quotaExceeded" }] } }, { status: 403 }));

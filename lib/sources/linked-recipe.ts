@@ -43,14 +43,25 @@ export function isDeniedHost(hostname: string): boolean {
 
 const URL_RE = /https?:\/\/[^\s<>"'`]+/gi;
 
+/** Invisible characters Instagram captions use as blank lines (braille blank, zero-width). */
+const INVISIBLE = /[\u2800\u200b\u200c\u200d\ufeff]/g;
+
+export type LinkCandidate = { url: string; score: number; /** The creator introduces it as the recipe ("recipe here:"). */ explicit: boolean };
+
 /**
- * Up to `max` URLs from a description that probably lead to this video's written recipe.
- * Scores each link by the words on its line and the line before ("full printable recipe…").
+ * URLs in a description or caption that probably lead to this video's written recipe, best first.
+ * Scores each link by the words on its line and the nearest non-blank line before it
+ * ("full printable recipe…" / "Comment 'recipe'…"). A caption's only link is kept as a weak candidate.
  */
-export function findRecipeLinks(description: string, max = 2): string[] {
-  const lines = description.split(/\r?\n/);
-  const scored: { url: string; score: number; order: number }[] = [];
+export function findRecipeLinkCandidates(text: string, max = 2): LinkCandidate[] {
+  const lines = text.replace(INVISIBLE, "").split(/\r?\n/);
+  const scored: (LinkCandidate & { order: number })[] = [];
+  const allowed: string[] = [];
   lines.forEach((line, i) => {
+    // The nearest non-blank line before, unless it's another link's own line.
+    let prev = "";
+    for (let j = i - 1; j >= 0 && !prev; j--) prev = lines[j].trim();
+    if (/https?:\/\//i.test(prev)) prev = "";
     for (const match of line.matchAll(URL_RE)) {
       const raw = match[0].replace(/[.,;:!?)\]}»"']+$/, "");
       let url: URL;
@@ -60,7 +71,8 @@ export function findRecipeLinks(description: string, max = 2): string[] {
         continue;
       }
       if (isDeniedHost(url.hostname)) continue;
-      const context = `${lines[i - 1] ?? ""} ${line.replace(match[0], " ")}`.toLowerCase();
+      allowed.push(url.toString());
+      const context = `${prev} ${line.replace(match[0], " ")}`.toLowerCase();
       let score = 0;
       if (/\brecipe\b/.test(context)) score += 3;
       else if (/\brecipes\b/.test(context)) score += 1;
@@ -68,15 +80,23 @@ export function findRecipeLinks(description: string, max = 2): string[] {
       if (/\b(cook)?books?\b|\bshop\b|merch|subscribe|follow|nutrition|affiliate|discount|\bcode\b|sponsor|\bgear\b|equipment|knife|knives|playlist|newsletter/.test(context)) score -= 3;
       if (url.pathname === "/" || url.pathname === "") score -= 2;
       if (/recipe/.test(url.pathname.toLowerCase())) score += 1;
-      if (score > 0) scored.push({ url: url.toString(), score, order: scored.length });
+      if (score > 0) scored.push({ url: url.toString(), score, explicit: score >= 3, order: scored.length });
     }
   });
+  const unique = [...new Set(allowed)];
+  if (!scored.length && unique.length === 1 && new URL(unique[0]).pathname.length > 1) {
+    scored.push({ url: unique[0], score: 0.5, explicit: false, order: 0 });
+  }
   const seen = new Set<string>();
   return scored
     .sort((a, b) => b.score - a.score || a.order - b.order)
-    .map((s) => s.url)
-    .filter((u) => (seen.has(u) ? false : (seen.add(u), true)))
-    .slice(0, max);
+    .filter((s) => (seen.has(s.url) ? false : (seen.add(s.url), true)))
+    .slice(0, max)
+    .map(({ url, score, explicit }) => ({ url, score, explicit }));
+}
+
+export function findRecipeLinks(text: string, max = 2): string[] {
+  return findRecipeLinkCandidates(text, max).map((c) => c.url);
 }
 
 // ---- JSON-LD --------------------------------------------------------------------------------
@@ -208,6 +228,15 @@ export function isRelevant(recipe: LinkedRecipe, video: { title: string; descrip
   return [...words(recipe.name)].some((w) => titleWords.has(w));
 }
 
+/** Words that say nothing about the dish: calls to action, platform chatter. */
+const NOT_DISH = new Set(["comment", "send", "link", "bio", "follow", "save", "share", "like", "subscribe", "click", "below", "above", "full", "here", "shorts", "reel", "reels", "viral", "trending", "video", "check", "website", "blog", "printable", "find", "search", "everything"]);
+
+/** Does the video's own text (title, first lines of description/caption) name the dish at all? */
+export function namesADish(video: { title: string; description: string }): boolean {
+  const text = `${video.title} ${video.description.replace(/https?:\/\/\S+/g, " ").slice(0, 400)}`;
+  return [...words(text)].some((w) => !NOT_DISH.has(w) && !NOT_DISH.has(`${w}s`));
+}
+
 export function isUsable(recipe: LinkedRecipe): boolean {
   return recipe.ingredients.length >= 3 && recipe.instructions.length >= 1;
 }
@@ -276,10 +305,11 @@ export async function fetchLinkedRecipe(
   video: { videoId: string; title: string; description: string },
   deps: { db: Db; transport?: Transport; signal?: AbortSignal },
 ): Promise<LinkedOutcome> {
-  const candidates = findRecipeLinks(video.description);
+  const found = findRecipeLinkCandidates(video.description);
+  const candidates = found.map((c) => c.url);
   const attempts: LinkAttempt[] = [];
   const transport = robotsAwareTransport(deps.db, deps.transport ?? httpsTransport, deps.signal);
-  for (const url of candidates) {
+  for (const { url, explicit } of found) {
     const key = `page:${video.videoId}:${url}`;
     let page = cacheGet<PageCache>(deps.db, key, DAY_MS);
     if (!page) {
@@ -288,7 +318,9 @@ export async function fetchLinkedRecipe(
         const res = await safeGet(url, { accept: "text/html", maxBytes: PAGE_MAX_BYTES, timeoutMs: PAGE_TIMEOUT_MS, signal }, transport);
         const nodes = extractJsonLdRecipes(res.body).map((n) => toLinkedRecipe(n, res.url, res.body, video.videoId));
         const usable = nodes.filter(isUsable);
-        const recipe = usable.find((r) => isRelevant(r, video)) ?? null;
+        // A link the creator introduces as "the recipe" also counts when the video's own text names
+        // no dish to compare with ("Comment 'recipe' and I'll send it!").
+        const recipe = usable.find((r) => isRelevant(r, video)) ?? (explicit && !namesADish(video) && usable.length === 1 ? usable[0] : null);
         page = recipe ? { recipe, result: "found" } : { recipe: null, result: usable.length ? "irrelevant" : "no_recipe", detail: usable[0]?.name };
       } catch (e) {
         if (deps.signal?.aborted) throw e;

@@ -2,8 +2,10 @@ import "server-only";
 import type { Db } from "@/lib/db";
 import { log } from "@/lib/log";
 import { isAbortError, PipelineError } from "@/lib/pipeline/errors";
-import { runYoutubeJob, type JobContext } from "@/lib/pipeline/youtube";
-import { claimNextJob, completeJob, failJob, heartbeat, readStages, recoverStaleJobs, requeueJob, setStageState, type JobRow } from "./store";
+import { runInstagramJob } from "@/lib/pipeline/instagram";
+import type { JobContext } from "@/lib/pipeline/model";
+import { runYoutubeJob } from "@/lib/pipeline/youtube";
+import { claimNextJob, completeJob, failJob, heartbeat, readStages, recoverStaleJobs, removeStage, requeueJob, setStageState, type JobRow } from "./store";
 
 /**
  * The background worker (decision D8): a separate process that polls the jobs table.
@@ -16,23 +18,32 @@ export const WORKER = {
   /** No heartbeat for this long: the worker died, recover the job. */
   staleMs: 30_000,
   recoverEveryMs: 15_000,
-  /** Whole-job cap; individual calls have their own, shorter timeouts. */
-  jobTimeoutMs: 180_000,
+  /** Whole-job cap; individual calls have their own, shorter timeouts. Instagram's transcript/visual jobs are slower. */
+  jobTimeoutMs: { youtube: 180_000, instagram: 240_000 },
   retryBackoffMs: 5_000,
 };
 
 export type RunJob = (ctx: JobContext) => Promise<string>;
 
+const runByPlatform: RunJob = (ctx) => (ctx.job.platform === "instagram" ? runInstagramJob(ctx) : runYoutubeJob(ctx));
+
 /** Runs one claimed job to completion, failure, or an automatic retry. Never throws. */
 export async function processJob(db: Db, job: JobRow, opts: { run?: RunJob; shutdown?: AbortSignal; jobTimeoutMs?: number; transport?: JobContext["transport"] } = {}) {
-  const run = opts.run ?? runYoutubeJob;
-  const timeout = AbortSignal.timeout(opts.jobTimeoutMs ?? WORKER.jobTimeoutMs);
+  const run = opts.run ?? runByPlatform;
+  const timeout = AbortSignal.timeout(opts.jobTimeoutMs ?? WORKER.jobTimeoutMs[job.platform]);
   const signal = opts.shutdown ? AbortSignal.any([timeout, opts.shutdown]) : timeout;
   const beat = setInterval(() => heartbeat(db, job.id), WORKER.heartbeatMs);
   const started = Date.now();
   log("job_started", { jobId: job.id, key: job.video_key, attempt: job.attempts });
   try {
-    const recipeId = await run({ db, job, signal, setStage: (key, state) => setStageState(db, job.id, key, state), transport: opts.transport });
+    const recipeId = await run({
+      db,
+      job,
+      signal,
+      setStage: (key, state) => setStageState(db, job.id, key, state),
+      skipStage: (key) => removeStage(db, job.id, key),
+      transport: opts.transport,
+    });
     completeJob(db, job.id, recipeId);
     log("job_succeeded", { jobId: job.id, recipeId, ms: Date.now() - started, attempt: job.attempts });
   } catch (e) {

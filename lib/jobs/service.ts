@@ -1,9 +1,10 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { getDb, getSecretSalt, transaction, type Db } from "@/lib/db";
-import { env, pipelineMode } from "@/lib/env";
+import { env, instagramLive, pipelineMode } from "@/lib/env";
 import { findFixtureByKey, getFixtureRecipe } from "@/lib/fixtures";
 import { log } from "@/lib/log";
+import { INSTAGRAM_STAGES } from "@/lib/pipeline/instagram";
 import { YOUTUBE_STAGES } from "@/lib/pipeline/youtube";
 import type { Recipe } from "@/lib/recipe/schema";
 import { parseVideoUrl, type UrlError } from "@/lib/url";
@@ -29,9 +30,10 @@ export function startJob(rawUrl: string, client: string, db: Db = getDb()): Star
   if (!parsed.ok) return { status: 400, body: { error: parsed.error } };
   const video = parsed.value;
 
-  // Offline mode, and the saved Instagram examples until M3: simulated jobs over the fixtures.
+  // Offline mode: simulated jobs over the saved fixtures.
   if (pipelineMode() === "fixtures") return { status: 202, body: { jobId: createMockJob(video) } };
-  if (video.platform === "instagram") {
+  // Instagram switched off (flag or missing key): only the saved examples work.
+  if (video.platform === "instagram" && !instagramLive()) {
     if (findFixtureByKey(video.key)) return { status: 202, body: { jobId: createMockJob(video) } };
     return { status: 400, body: { error: "instagram_not_yet" } };
   }
@@ -54,7 +56,7 @@ export function startJob(rawUrl: string, client: string, db: Db = getDb()): Star
       log("rate_limited", { client });
       return { status: 429, body: { error: "rate_limited" } };
     }
-    const jobId = insertJob(db, { parsed: video, stages: YOUTUBE_STAGES, clientHash: client });
+    const jobId = insertJob(db, { parsed: video, stages: video.platform === "instagram" ? INSTAGRAM_STAGES : YOUTUBE_STAGES, clientHash: client });
     log("job_created", { jobId, key: video.key });
     return { status: 202, body: { jobId } };
   });
