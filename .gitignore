@@ -26,3 +26,7 @@ coverage/
 *.pem
 npm-debug.log*
 .vercel
+
+# playwright
+/test-results/
+/playwright-report/
