@@ -1,17 +1,18 @@
 # Deployment: Reelish on the shared VPS
 
-**Status: live at <https://deepclean.app/reelish>** since 2026-11-21 (release `4d6083c`). The server also runs
-DeepClean.app, its license server, ViaFix and BeatPath. Reelish shares only the machine and the Nginx process.
+**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST (release `4d6083c`). The server also runs
+DeepClean.app and a few other small apps owned by the same person. Reelish shares only the machine and the
+Nginx process.
 DeepClean's files, database, Node and services were not touched.
 
-## The server (inspected 2026-11-21, read-only)
+## The server (inspected 2026-11-22 IST, read-only)
 
 | Item | Found | Consequence |
 |---|---|---|
-| Machine | DigitalOcean droplet, Ubuntu 24.04.3, **1 vCPU, 961 MB RAM** (~420 MB available), 2 GB swap, **8.7 GB disk, 1.6 GB free** | `npm ci` (~650 MB) plus `next build` (1–2 GB RAM) on the server would have starved the other apps. **We build on the Mac and ship a 51 MB bundle** |
-| Running | nginx 1.24, PostgreSQL 16, DeepClean license (gunicorn :5001), BeatPath (uvicorn :5002), ViaFix API (:5003) and web (Next.js :5004) | Port **3101** was free (checked with `ss -ltn` before use) |
-| Node | no system `node`; ViaFix uses `/opt/node` (v22.23.4) | Reelish has **its own** Node 22.23.5 in `/opt/reelish/node` (official tarball, SHA-256 checked, npm removed) |
-| Nginx | `sites-enabled/deepclean.app` holds the `deepclean.app` 443 block; ViaFix is mounted under `/ViaFix` via `include snippets/viafix.conf` | Reelish follows the same pattern under `/reelish` |
+| Machine | Ubuntu 24.04 VPS, **1 vCPU, 961 MB RAM** (~420 MB available), 2 GB swap, **8.7 GB disk, 1.6 GB free** | `npm ci` (~650 MB) plus `next build` (1–2 GB RAM) on the server would have starved the other apps. **We build on the Mac and ship a 51 MB bundle** |
+| Running | nginx 1.24 and the other apps' services, all on localhost ports | Port **3101** was free (checked with `ss -ltn` before use) |
+| Node | no system `node`; another app has its own Node | Reelish has **its own** Node 22.23.5 in `/opt/reelish/node` (official tarball, SHA-256 checked, npm removed) |
+| Nginx | `sites-enabled/deepclean.app` holds the `deepclean.app` 443 block; another app is already mounted under a sub-path via an included snippet | Reelish follows the same pattern under `/reelish` |
 | TLS / DNS | Let's Encrypt cert `deepclean.app`, renewed by `certbot.timer`; DNS points straight at the droplet (no Cloudflare: `Server: nginx`, no `cf-ray`) | **No new certificate or DNS record**; `$remote_addr` is the real visitor IP |
 | Firewall | ufw: deny incoming except 22, 80, 443 | No change. 3101 is bound to 127.0.0.1 only |
 
@@ -19,7 +20,7 @@ DeepClean's files, database, Node and services were not touched.
 
 ```
 Internet ─▶ Nginx ── deepclean.app 443 block (existing)
-                      ├─ /ViaFix/…   → 127.0.0.1:5004 / 5003   (unchanged)
+                      ├─ other sub-path apps                    (unchanged)
                       ├─ /reelish/…  → 127.0.0.1:3101  reelish-web.service    (Next.js standalone, basePath /reelish)
                       └─ /           → static DeepClean site (unchanged)
                                         reelish-worker.service (jobs)
@@ -75,11 +76,11 @@ SUPADATA_MAX_JOB_CREDITS=12
 ```
 
 **Deviation from the plan:** the plan called for a separate production OpenRouter key with its own small limit.
-The owner chose to reuse the development key (limit $20, $0.11 used on 2026-11-21). The app's $0.50/24 h cap is
+The owner chose to reuse the development key (limit $20, $0.11 used by 2026-11-22). The app's $0.50/24 h cap is
 therefore the main ceiling; the key limit is the backstop. A separate key can be swapped in later by editing
 `OPENROUTER_API_KEY` and restarting both units.
 
-## Nginx changes (approved by the owner, applied 2026-11-21)
+## Nginx changes (approved by the owner, applied 2026-11-22 IST)
 
 1. New `/etc/nginx/conf.d/reelish-limits.conf`: `limit_req_zone`s `reelish_start` (6 r/min) and `reelish_all`
    (10 r/s). No other zone existed.
@@ -87,14 +88,14 @@ therefore the main ceiling; the key limit is the backstop. A separate key can be
    `location ^~ /reelish/` → `127.0.0.1:3101`. `^~` stops DeepClean's regex locations (`.js`/`.css`/image caching,
    `/index` rewrites) from catching Reelish paths. Job starts (`/reelish/api/jobs`, `/reelish/start`) get the
    tighter zone; polling doesn't.
-3. One line in DeepClean's server block, after the ViaFix include: `include snippets/reelish.conf;`. A backup of
+3. One line in DeepClean's server block, after the other app's include: `include snippets/reelish.conf;`. A backup of
    the original file is in `/root/deepclean.app.nginx.bak-*`.
 4. Follow-up (approved): removed `X-Forwarded-Proto` from `reelish-proxy.conf`. With it, unknown recipe links
    returned **500** instead of 404: Next 16 sends the `proxy.ts` 404 rewrite out as an external request to
    `https://localhost:3101`, a plain-HTTP port. Reelish doesn't read the header anywhere.
 
 Each change: `nginx -t` (also tested first on a throwaway copy of `/etc/nginx`), then `systemctl reload nginx`
-(not restart). DeepClean, www redirect, ViaFix and api.deepclean.app returned the same codes before and after.
+(not restart). DeepClean, its www redirect, the other sub-path app and DeepClean's API host returned the same codes before and after.
 
 **Not done:** HSTS. It's a host-wide header and would affect DeepClean, so it's DeepClean's call.
 
@@ -150,7 +151,7 @@ or unit.
 `reelish.db-shm`, start both. The database holds no accounts or personal data, only recipes, jobs, cached
 creator text and salted IP hashes.
 
-## Verified on the live site (2026-11-21)
+## Verified on the live site (2026-11-22 IST)
 
 See `docs/submission/TEST-REPORT.md` → "Production smoke test". In short: 42/42 browser checks on desktop and
 mobile, cache hits free, worker SIGKILL mid-job recovered, budget cap and both rate limits trigger, other sites

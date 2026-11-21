@@ -4,57 +4,40 @@ The goal is to share the real sessions as they happened. **Redact secrets and pe
 edit, reorder, trim or "tidy" the conversation, and don't remove mistakes or dead ends: they're part of the
 decision history.
 
-## 1. Find the sessions
-- Raw transcripts: `~/.claude/projects/-Users-jimmy-Documents-programming-Projects-Reelish/`.
-  - `725fea78-….jsonl`: spike through M3 (about 22 MB), plus its subagent transcripts (`agent-*.jsonl`).
-  - `5bd821a9-….jsonl`: the M4 session.
-  - `8891a5d9-….jsonl`: deployment and final docs (2026-11-22).
-- **Exported 2026-11-22** to `../Reelish-session-exports/` (next to the repo, not in it): `raw/` copies plus
-  Markdown renderings made by `scripts/export-sessions.py`. See that folder's `README.md`.
-- Inside each session, `/export` writes a readable copy of the conversation to a file. Export **every** session
-  that produced commits.
-- Keep the raw `.jsonl` files unchanged as the original record. Share exports or redacted copies, never edited
-  originals.
+## How the reviewer-safe export is made
+```bash
+python3 -I scripts/export-sessions.py ../Reelish-submission/ai-sessions    # from the repo root
+```
+- Exports every transcript in `~/.claude/projects/-Users-jimmy-Documents-programming-Projects-Reelish/`, plus
+  subagent transcripts:
+  - `725fea78…`: spike through M3;
+  - `5bd821a9…`: M4;
+  - `8891a5d9…` and its continuation `892d6c2a…`: deployment and final docs.
+- Writes redacted `raw/*.jsonl` (same structure) and `markdown/*.md` renderings.
+- Ends with a verification scan and prints `verification: clean`, or the files that still match.
+- The originals in `~/.claude/projects/…` are never modified. An unredacted local copy from an earlier export
+  is in `../Reelish-session-exports/`. **It is private: don't share it.**
 
-## 2. Check for secrets (before sharing anything)
-- [x] **Exact API key values**: a scan on 2026-11-21 compared every transcript against the values in `.env`
-  (`OPENROUTER_API_KEY`, `YOUTUBE_API_KEY`, `SUPADATA_API_KEY`). **0 matches** in all 15 files.
-- [x] **Key-shaped strings** (`sk-or-v1-…`, `AIza…`, `sd_…`): one match, a fake test key in test code. Nothing
-  real.
-- [x] Scan of the 2026-11-22 export (raw and Markdown): **no key values, no key-shaped strings, no tokens.**
-- [ ] Re-run the export and the scan once the deployment session has ended; that export was a snapshot. Command, which prints
-  only counts:
-  ```bash
-  python3 - <<'EOF'
-  import re, glob, os
-  keys = {m.group(1): m.group(2) for l in open(".env") if (m := re.match(r"\s*([A-Z_]+)\s*=\s*(\S{8,})", l))}
-  for f in glob.glob(os.path.expanduser("~/path/to/exports/*")):
-      t = open(f, errors="ignore").read()
-      print(f, {k: t.count(v) for k, v in keys.items() if v in t} or "clean")
-  EOF
-  ```
-- [ ] Search the exports for: `Authorization:`, `Bearer `, `x-api-key`, `password`, `token=`, `PRIVATE KEY`, and
-  any `.env` file being printed (`cat .env`).
-- [ ] If a real key **is** found: **rotate the key first** (OpenRouter, Google Cloud, Supadata). Then replace that
-  one string with `[REDACTED-OPENROUTER-KEY]` and add a note at the top: "Redacted: 1 API key; nothing else
-  changed."
+## What is redacted, and why
+| What | Why | Replaced by |
+|---|---|---|
+| The OpenRouter key (also its bare hex part) and other `.env` key values | The assignment PDF printed the key, and it ended up in the transcripts | `[REDACTED-OPENROUTER-KEY]` etc. |
+| The attached assignment PDF | It contains the key | a one-line note |
+| The owner's email (plain, regex-escaped, local part) and any personal-domain email (including a recipe creator's public contact address) | Personal details | `[REDACTED-EMAIL]` |
+| Every non-test IP address (the VPS, two unrelated servers, the owner's home and LAN addresses) | Infrastructure and location | `[REDACTED-IP]` |
+| SSH key file names, other servers' SSH host aliases and users | Unrelated infrastructure | `[REDACTED-…]` |
+| Output of 4 read-only commands that dumped the local SSH config, the VPS's other services, ports and processes, and DeepClean's Nginx block | Unrelated infrastructure | a note saying what was there and where the relevant summary is (`docs/DEPLOYMENT.md`) |
 
-## 3. Personal details
-- [ ] Your email, and any name you don't want shared. The git author name appears in commits.
-- [ ] Local paths (`/Users/jimmy/…`) and machine details (a LAN IP appeared in a server log). Usually harmless;
-  your call.
-- [ ] The VPS IP, two unrelated servers' IPs and SSH key file names appear in session `8891a5d9` (the local
-  SSH config was read during deployment). No key contents.
-- [ ] Creator names and video links are public and part of the evaluation. Keep them.
+**Not redacted:**
+- Local paths (`/Users/jimmy/…`).
+- The GitHub username and the submitter's first name.
+- The name `deepclean.app`, since it's the public host.
+- Names of the other apps on the VPS, where they're mentioned in the conversation itself.
+- Public creator names and video links.
 
-## 4. Keep the history honest
-- [ ] Don't delete failed attempts, reverted approaches, or places where the AI was wrong (see `BUILD-LOG.md`).
-- [ ] Don't add or rewrite messages after the fact. If context is needed, put it in a separate cover note.
-- [ ] If anything was redacted, say exactly what and why in the cover note.
-- [ ] Make sure the exports and the git history agree: the session's commits should be in `git log`.
-  **Don't squash or rewrite git history.**
-
-## 5. Final pass
-- [ ] Open each export and skim it start to finish once.
-- [ ] Re-run the scan in step 2 on exactly the files you'll share.
-- [ ] Share privately first (for example, with the reviewer only), not on a public link.
+## Before sharing
+- [x] Scan of the export (2026-11-22): no key values, no key-shaped strings, no non-test IPs, no personal email.
+- [ ] Re-run the export after the last session ends; the current session is captured only up to the export.
+- [ ] Skim the Markdown renderings once.
+- [ ] Share privately with the reviewer.
+- [ ] Don't squash or rewrite git history. The exports and `git log` should agree.

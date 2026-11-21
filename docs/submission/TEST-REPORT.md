@@ -1,7 +1,12 @@
 # Reelish test report
 
-Ten real links processed by the live pipeline during development on 2026-11-21 (#1–10), one over-length
-video (#11, F3), and a production smoke test on the deployed site (<https://deepclean.app/reelish>). The full
+Ten links processed by the live pipeline during development on 2026-11-21 (#1–10), one over-length video
+(#11, F3), and a production smoke test on the deployed site (<https://deepclean.app/reelish>).
+- **Real videos:** 8 distinct ones. Seven were processed (#1, 2, 3, 4, 6, 7, 8); #11 is a real video that was
+  refused for length.
+- **Variants and error cases:** #9 reruns #8 with its recipe link blocked. #5 and #10 are deliberately made-up
+  ids, used to test the "can't open" path.
+- Times are IST unless marked UTC. The full
 scoring notes for #1–10 are in `docs/M4-EVALUATION.md`; this is the summary.
 
 **Expected result** means what the creator's own published information supports (a description, a caption or
@@ -28,7 +33,7 @@ to watch the video.
 | 11 | [YT 2:22:17 stream](https://www.youtube.com/watch?v=kazwMSkeoSQ) (F3, 8,537 s) | Refused as too long, no AI call | "This video is too long"; metadata failed, later stages never ran | – | – | – | Correct | 0.25 s | $0 |
 
 **Technical success:** 11/11. Every link was processed or refused correctly.
-- #11 ran on 2026-11-22 against the release build with `OPENROUTER_BASE_URL` pointed at a dead local port, so
+- #11 ran on 2026-11-22 (IST) against the release build with `OPENROUTER_BASE_URL` pointed at a dead local port, so
   an AI call was impossible even by mistake. The database recorded one run at $0.00.
 - The other planned fresh runs (F1 Food52 13-minute video, F2 no-talking ASMR video, F4 a Reel from another
   creator) were **not run**, by decision, to ship.
@@ -40,7 +45,11 @@ quantities were invented anywhere.
 - 2 not cookable, which the app says up front.
 
 ## Cost
-- **AI per recipe:** $0.0065–0.0169 (mean $0.0093). Instagram also used 1 Supadata credit per Reel.
+- **AI per recipe:**
+  - The 6 first-pass recipes (#1–3, 6–8) cost $0.0065–0.0169, mean $0.0093.
+  - Adding the blocked-link variant #9 ($0.0052): 7 development recipe runs, $0.0052–0.0169, mean $0.0087.
+  - Adding the 3 live-site recipes below: 10 runs, mean $0.0084.
+  - Instagram also used 1 Supadata credit per Reel.
 - Refusals cost $0, except the music video ($0.0067): it takes an AI call to decide that a video isn't a recipe.
 - Repeat requests are served from cache at $0.
 
@@ -88,7 +97,7 @@ Regression tests run on the saved real model answers, not only synthetic data.
 journeys with axe on phone and desktop (fixture data, 1 phone-only test skipped on desktop), and the production
 build.
 
-## Production smoke test (deployed site, 2026-11-21 19:40–19:52 UTC)
+## Production smoke test (deployed site, 2026-11-22 01:10–01:22 IST)
 
 Run against `https://deepclean.app/reelish` (release `4d6083c`), not localhost.
 
@@ -127,7 +136,7 @@ The first runs failed on the script's own selectors (live recipe ids carry a ver
   `rate_limited` on the 7th new video from one visitor within an hour. Cached recipes aren't limited.
 - **Spending:** the $0.001 budget test stopped before any AI call; the cap was restored to $0.50.
 - **Health:** `reelish-health.timer` (5 min) and `reelish-backup.timer` (daily) active; a backup was written.
-- **DeepClean.app** and ViaFix returned 200 before and after every Nginx change. All other services stayed
+- **DeepClean.app** and the other app on that host returned 200 before and after every Nginx change. All other services stayed
   active. Reelish used ~55 MB (web) + ~24 MB (worker).
 
 **Cost reconciliation:** the OpenRouter key's usage went from $0.0858 to $0.1106 (**+$0.0248**). The
