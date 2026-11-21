@@ -4,9 +4,12 @@ Paste a YouTube or Instagram cooking video and get a recipe you can actually coo
 overview for prepping, and a focused Cook Mode for following the steps. Amounts the creator didn't
 give are shown as **Not specified**, never guessed, and you can add your own.
 
-**Status: M2.** YouTube videos and Shorts are processed live: YouTube Data API → the creator's linked
-recipe (JSON-LD) → Gemini via OpenRouter → validated recipe. Instagram is M3; until then only the saved
-Instagram examples work. See [docs/PLAN.md](docs/PLAN.md) and [docs/M2-RESULTS.md](docs/M2-RESULTS.md).
+**Status: M3.** YouTube videos and Shorts, and public Instagram Reels, are processed live.
+- **YouTube:** Data API → the creator's linked recipe → Gemini watches the video.
+- **Instagram:** Supadata caption → linked recipe → transcript only if needed → one text-only AI call.
+
+See [docs/PLAN.md](docs/PLAN.md), [docs/M2-RESULTS.md](docs/M2-RESULTS.md),
+[docs/M3-RESULTS.md](docs/M3-RESULTS.md) and [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
 
 ## Run locally
 
@@ -20,7 +23,8 @@ npm run dev            # http://localhost:3000
 ### Live mode (YouTube)
 
 Put `YOUTUBE_API_KEY` and `OPENROUTER_API_KEY` in `.env.local` (or `.env`; see `.env.example`). With
-both set the app runs live; otherwise it falls back to the saved fixtures. Keys stay on the server
+both set the app runs live; otherwise it falls back to the saved fixtures. Instagram also needs
+`SUPADATA_API_KEY` (and `INSTAGRAM_ENABLED=true`, the default). Keys stay on the server
 (`lib/env.ts`) and must never be prefixed with `NEXT_PUBLIC_`.
 
 ```bash
@@ -34,7 +38,9 @@ Jobs, recipes and caches live in SQLite at `data/reelish.db` (`REELISH_DB_PATH` 
 
 **Spend controls.** Each AI call reserves its worst-case cost before it runs. Calls are refused above
 `MAX_JOB_COST_USD` (default 0.12) or when the last 24 h would exceed `DAILY_AI_BUDGET_USD` (default 1).
-Each visitor can start `RATE_LIMIT_PER_HOUR` new videos per hour (default 10; cache hits are free).
+Supadata credits are capped separately (`SUPADATA_DAILY_CREDITS` 25, `SUPADATA_MONTHLY_CREDITS` 90,
+`SUPADATA_MAX_JOB_CREDITS` 12; the free plan has 100/month). Each visitor can start
+`RATE_LIMIT_PER_HOUR` new videos per hour (default 10; cache hits are free).
 To check a video for free before paying:
 
 ```bash
@@ -63,8 +69,11 @@ components/           UI (recipe/, cook/, ui/ = shadcn)
 hooks/                browser-only state (edits, checklist, cook progress) and screen wake lock
 lib/recipe/           Zod schema, labels, edits overlay, quantity parser
 lib/jobs/             job types, SQLite job store, start/dedup/rate-limit service, worker loop, fixture jobs
-lib/pipeline/         YouTube pipeline, prompt + model-output schema, normalizer + provenance guard
-lib/sources/          YouTube Data API, SSRF-safe fetcher (robots.txt), linked-recipe JSON-LD
+lib/pipeline/         YouTube and Instagram pipelines, shared AI call, prompts, sufficiency check,
+                      normalizer + provenance guard
+proxy.ts              returns a real 404 for unknown recipe ids
+lib/sources/          YouTube Data API, SSRF-safe fetcher (robots.txt), linked-recipe JSON-LD,
+                      instagram/ (provider interface + Supadata, isolated)
 lib/llm/              OpenRouter client
 lib/db/               SQLite (node:sqlite); the only module that knows the database
 worker/               background worker entry (npm run worker)
@@ -73,4 +82,6 @@ lib/url.ts            link parsing: host allowlist, canonical URL
 spike/                feasibility experiments and evaluation (frozen)
 docs/PLAN.md          architecture and milestones
 docs/M2-RESULTS.md    live YouTube test results, cost and latency
+docs/M3-RESULTS.md    live Instagram test results, cost and latency
+docs/PLATFORM-CONSTRAINTS.md  what each source permits; open questions
 ```

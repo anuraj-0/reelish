@@ -456,6 +456,29 @@ Each milestone ends with something working, plus tests.
 - **Not done in M2** (unchanged plan): `PLATFORM-CONSTRAINTS.md`, the `npm run eval` report, and deployment
   (M4/M5).
 
+## 5c. As built in M3 (2026-11-21)
+
+- **Instagram:** `lib/pipeline/instagram.ts` runs on the same jobs, cache, budget and UI as YouTube:
+  caption → linked recipe → deterministic sufficiency check → transcript only if needed → visual notes only when
+  fewer than 15 words are spoken → one text-only AI call (`INSTAGRAM_PROMPT`, derived from the YouTube prompt).
+- **Isolation:** Supadata lives only in `lib/sources/instagram/supadata.ts`, behind `InstagramProvider`. It's
+  switched off with `INSTAGRAM_ENABLED=false` or when `SUPADATA_API_KEY` is missing.
+- **Credits:**
+  - tracked apart from AI dollars (`processing_runs.credits`, `worst_case_credits`);
+  - each call is reserved at worst case under daily, 30-day and per-job caps, then settled from
+    `x-billable-requests`.
+- **No double spend:** paid results are cached (details 24 h; transcript and visual notes 7 days). Async
+  Supadata jobs record their id and resume polling after a crash.
+- **Provenance:** the model never sees an Instagram video, so claims about speech, screen text and visuals are
+  verified against the transcript and visual-notes text.
+- **Honest failures:** a Reel with no caption, speech or visual text fails as "no recipe found" with no AI call.
+  Photo posts get `not_a_video`.
+- **M2 follow-ups:**
+  - Cook Mode hides a preparation note until its step has passed.
+  - Unknown recipe ids return 404 via `proxy.ts`.
+  - The start form survives a paste before hydration and works without JavaScript (`/start`).
+- Results: `docs/M3-RESULTS.md`. Permissions: `docs/PLATFORM-CONSTRAINTS.md`.
+
 ## 6. Decisions (resolved 2026-11-21)
 
 | # | Decision |
