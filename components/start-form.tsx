@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { basePath } from "@/lib/base-path";
 import { START_ERROR_TEXT, type StartError } from "@/lib/jobs/types";
 import { parseVideoUrl, URL_ERROR_TEXT, type UrlError } from "@/lib/url";
 
@@ -42,7 +43,7 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
     setError(null);
     setSubmitting(source);
     try {
-      const res = await fetch("/api/jobs", {
+      const res = await fetch(`${basePath}/api/jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: value }),
@@ -67,7 +68,7 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
       {/* Works before hydration too (slow phones): the browser posts to /start, which redirects. */}
       <form
         method="post"
-        action="/start"
+        action={`${basePath}/start`}
         noValidate
         onSubmit={(e) => {
           e.preventDefault();

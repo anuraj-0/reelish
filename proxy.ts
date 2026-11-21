@@ -14,7 +14,9 @@ export function proxy(request: NextRequest) {
     id = ""; // malformed escape (e.g. "%E0%A4%A"): not a recipe, so 404 rather than a crash
   }
   if (!recipeExists(id)) {
-    return NextResponse.rewrite(new URL("/__recipe-not-found", request.url));
+    const notFound = request.nextUrl.clone(); // keeps the basePath, if any
+    notFound.pathname = "/__recipe-not-found";
+    return NextResponse.rewrite(notFound);
   }
 }
 

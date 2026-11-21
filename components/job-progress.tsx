@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { basePath } from "@/lib/base-path";
 import { PLATFORM_NAME } from "@/lib/format";
 import { JOB_ERROR_TEXT, JobStatus, STAGE_LABEL } from "@/lib/jobs/types";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,7 @@ export function JobProgress({ jobId }: { jobId: string }) {
     let timer: ReturnType<typeof setTimeout>;
     const tick = async () => {
       try {
-        const res = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
+        const res = await fetch(`${basePath}/api/jobs/${jobId}`, { cache: "no-store" });
         if (stop) return;
         if (res.status === 404) return setData({ kind: "missing" });
         const job = JobStatus.parse(await res.json());
@@ -132,7 +133,7 @@ function RetryButton({ url }: { url: string }) {
           setBusy(true);
           setFailed(false);
           try {
-            const res = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+            const res = await fetch(`${basePath}/api/jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
             const body = (await res.json()) as { jobId?: string; recipeId?: string };
             if (body.recipeId) return router.replace(`/r/${body.recipeId}`);
             if (body.jobId) return router.replace(`/jobs/${body.jobId}`);
