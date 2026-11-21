@@ -1,10 +1,14 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { spentLast24h } from "@/lib/budget";
 import { openDb, setDbForTests, type Db } from "@/lib/db";
 import { resetEnvForTests } from "@/lib/env";
 import { getJobStatus, getRecipe, startJob } from "@/lib/jobs/service";
 import { claimNextJob, getJob, recoverStaleJobs } from "@/lib/jobs/store";
-import { processJob } from "@/lib/jobs/worker";
+import { processJob, startWorker } from "@/lib/jobs/worker";
+import { runYoutubeJob } from "@/lib/pipeline/youtube";
 import { chat } from "@/lib/llm/openrouter";
 import { fetchYoutubeVideo } from "@/lib/sources/youtube";
 import type { Transport } from "@/lib/sources/safe-fetch";
@@ -273,6 +277,74 @@ describe("YouTube job, end to end with mocked APIs", () => {
     expect(everything).not.toContain(YT_KEY);
     expect(everything).not.toContain(OR_KEY);
     vi.restoreAllMocks();
+  });
+});
+
+describe("restarts don't cost twice", () => {
+  async function until(check: () => boolean, ms = 10_000) {
+    const end = Date.now() + ms;
+    while (!check()) {
+      if (Date.now() > end) throw new Error("timed out waiting");
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
+  it("a finished YouTube recipe stays cached after the worker and database are restarted", async () => {
+    const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "reelish-")), "restart.db");
+    try {
+      // First "process": a real worker loop runs the job against a database file.
+      let fileDb = openDb(file);
+      const { body } = startJob(SOUP_URL, CLIENT, fileDb);
+      let worker = startWorker(fileDb, { transport });
+      await until(() => getJob(fileDb, body.jobId!)?.status === "succeeded");
+      await worker.stop(1_000);
+      fileDb.close();
+      expect(api.count("https://openrouter.ai")).toBe(1);
+
+      // Second "process": reopen the same file, start a new worker, ask for the same video.
+      fileDb = openDb(file);
+      worker = startWorker(fileDb, { transport });
+      const again = startJob("https://www.youtube.com/watch?v=VTR8vxBFGDY", "another-visitor", fileDb);
+      expect(again.status).toBe(200);
+      expect(getRecipe(again.body.recipeId!, fileDb)?.title).toBe("Creamy Vegetable Soup");
+
+      // Even if the saved recipe were lost, rebuilding it reuses the stored AI answer.
+      fileDb.prepare("DELETE FROM recipes").run();
+      const rebuilt = startJob(SOUP_URL, CLIENT, fileDb);
+      expect(rebuilt.status).toBe(202);
+      await until(() => getJob(fileDb, rebuilt.body.jobId!)?.status === "succeeded");
+      await worker.stop(1_000);
+      expect(api.count("https://openrouter.ai")).toBe(1);
+      expect(api.count("https://www.googleapis.com")).toBe(1);
+      expect((fileDb.prepare("SELECT COUNT(*) AS n FROM processing_runs WHERE provider = 'openrouter' AND cost_usd > 0").get() as { n: number }).n).toBe(1);
+      fileDb.close();
+    } finally {
+      fs.rmSync(path.dirname(file), { recursive: true, force: true });
+    }
+  });
+
+  it("a worker that dies after the AI call is recovered without paying again", async () => {
+    startJob(SOUP_URL, CLIENT, db);
+    const job = claimNextJob(db)!;
+    // Run the real pipeline, but "kill the process" right after the AI answer arrives.
+    const killed = new Error("process killed");
+    await expect(
+      runYoutubeJob({
+        db,
+        job,
+        signal: new AbortController().signal,
+        transport,
+        setStage: (key, state) => {
+          if (key === "normalize" && state === "active") throw killed;
+        },
+      }),
+    ).rejects.toBe(killed);
+    expect(getJob(db, job.id)?.status).toBe("running"); // nothing marked it finished
+
+    // The next worker finds it stale, requeues it, and finishes it from the cached AI answer.
+    expect(recoverStaleJobs(db, 30_000, Date.now() + 60_000).requeued).toEqual([job.id]);
+    expect((await runNext(db, Date.now() + 60_000)).status).toBe("succeeded");
+    expect(api.count("https://openrouter.ai")).toBe(1);
   });
 });
 

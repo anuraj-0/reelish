@@ -64,7 +64,7 @@ export async function processJob(db: Db, job: JobRow, opts: { run?: RunJob; shut
   }
 }
 
-export function startWorker(db: Db, opts: { run?: RunJob } = {}) {
+export function startWorker(db: Db, opts: { run?: RunJob; transport?: JobContext["transport"] } = {}) {
   const shutdown = new AbortController();
   const active = new Set<Promise<void>>();
   let stopping = false;
@@ -81,7 +81,7 @@ export function startWorker(db: Db, opts: { run?: RunJob } = {}) {
       while (!stopping && active.size < WORKER.concurrency) {
         const job = claimNextJob(db);
         if (!job) break;
-        const p = processJob(db, job, { run: opts.run, shutdown: shutdown.signal }).finally(() => active.delete(p));
+        const p = processJob(db, job, { run: opts.run, shutdown: shutdown.signal, transport: opts.transport }).finally(() => active.delete(p));
         active.add(p);
       }
       await new Promise((r) => setTimeout(r, WORKER.pollMs));
