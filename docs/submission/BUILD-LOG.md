@@ -14,17 +14,19 @@
 - **Feasibility spike:** Python scripts (`spike/`).
 
 ## Time
-About **6½ hours on 21 November 2026**, from the first files (~17:30 IST) to the M3 docs (23:44). The commit
-timestamps are the evidence. Work done outside the editor isn't counted.
-*(Correct this if your own record differs.)*
+**Not measured.** We didn't track working time.
 
-| Phase | Commits | Roughly |
-|---|---|---|
-| Spike and plan | 18:24–18:35 | spike results, architecture, decisions |
-| M0–M1: schema, UI on fixture data, e2e + axe, UX review | 18:44–20:10 | ~1½ h |
-| M2: YouTube live, jobs, worker, caching, budget | 22:30–22:56 | (built from ~20:10) |
-| M3: Instagram, credits, live fixes | 23:06–23:44 | ~1 h |
-| M4: evaluation, production review, deployment plan, drafts | from 23:48 | in progress |
+What the repository shows:
+- 21 November 2026: commits run from 18:24 to 23:44 IST (milestones M0–M3), with a gap between about 20:10 and
+  22:30 that has no commits.
+- 21–22 November: further commits (M4 evaluation and production review, then the Cook Mode and wording fixes).
+
+That's a range of commit times, not hours worked:
+- It leaves out time before the first commit (spike, planning) and time between sessions.
+- Much of the work was done by Claude Code in long-running turns, so the span doesn't reflect the person's own
+  effort either.
+
+*(Fill in your own estimate of the hours you spent, and say it's an estimate.)*
 
 ## Where AI helped
 *(Both examples come from the commit history and the M3/M4 docs. Check that they match how you remember

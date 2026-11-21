@@ -53,22 +53,33 @@ quantities were invented anywhere.
 | Worker restarted mid-job | Job resumes from cache after recovery | no double charge |
 
 ## UX checks on the real outputs (automated)
-- All six real recipes were opened at 375×667 (small phone), Pixel 7, and 1280×860. Every Cook Mode step was
-  stepped through on the production build.
-- **No accessibility violations** (axe: WCAG 2.1 A/AA + best practice), **no horizontal overflow** and **no
-  console errors**.
-- **One layout issue:** steps that reuse many ingredients push amounts below the controls on small phones:
-  - pasta salad step 6 shows 7 of 12 amounts on screen;
-  - carbonara step 13 shows 4 of 5.
 
-  The rest of the list scrolls. A fix is proposed, not built.
-- **Wording issues from real data:**
-  - "1 5kg" turkey (the blog's "(11 lbs)" was dropped);
-  - "Done when get golden";
-  - a basting interval shown as a cooking time.
+**First pass (M4):**
+- All six stored real recipes, at 375×667, Pixel 7 and 1280×860, every Cook Mode step: no axe violations, no
+  overflow, no console errors.
+- But steps that reuse many ingredients pushed amounts below the buttons:
+  - pasta salad step 6 showed 7 of 12 on a 375 px phone;
+  - carbonara step 13 showed 4 of 5.
+- Reading the real recipes turned up three wording problems: "1 5kg" turkey, "Done when get golden", and a
+  basting interval shown as a cooking time.
 
-The existing suite also passed: 204 unit and integration tests, and 23 e2e journeys with axe scans on phone and
-desktop (fixture data).
+**Fixes:** small explicit rules, no AI rewriting (details in `docs/M4-EVALUATION.md`).
+- Cook Mode lists ingredients first used in the step or named in it, and collapses the rest under
+  "Already added".
+- Ambiguous amounts show the creator's own line.
+- Cues that start with a bare verb get "Done when it …".
+- Intervals show as repeats.
+
+Regression tests run on the saved real model answers, not only synthetic data.
+
+**Second pass, after the fixes:**
+- Same recipes, at 375×667, 412×839, 768×1024, 1024×768 and 1280×800.
+- **298/300 step views** show the instruction and every ingredient for the step without scrolling. The 2
+  exceptions are 5-ingredient steps at 1024×768, where the fifth row sits just below the buttons.
+- No axe violations (including with "Already added" open), no overflow, no console errors.
+
+**Checks:** 245 unit and integration tests, and 23 e2e journeys with axe on phone and desktop (fixture data),
+plus the production build.
 
 ## Not covered
 - Videos over 6 minutes.
@@ -77,6 +88,7 @@ desktop (fixture data).
 - Instagram's visual-notes path (mocked tests only).
 - A real private or removed video.
 - Repeat-run consistency through the current pipeline.
+- Fresh runs F1–F4 (planned, waiting for approval; F4 needs a Reel link).
 - **Any observed human cooking session.**
 
 Proposed fresh runs and their cost are in `docs/M4-EVALUATION.md`.

@@ -29,6 +29,17 @@ in. A recipe that admits it's missing amounts is more useful in the kitchen than
   cap and a 24-hour budget. Paid results are cached, so retries, crashes and normalizer changes don't pay
   twice.
 
+- **Fix wording with rules, not another model pass.** Reading the real recipes turned up "1 5kg turkey",
+  "Done when get golden" and "every 40 minutes" shown as a cooking time.
+  - We fixed each with a small rule we can test: flag the amount and show the creator's own line; fix the
+    lead-in, not the cue; treat "every…" as a repeat.
+  - Asking the model to "clean it up" would have made the text smoother and less trustworthy.
+- **Cook Mode shows what this step needs.** "Toss in the crispy pasta" used to list all 12 amounts.
+  - Now it lists ingredients first used in the step, or named in its instruction, and folds the rest into
+    "Already added".
+  - The "named" part matters: "Roll in sugar" and "Garnish with parmesan" reuse ingredients the cook still
+    needs.
+
 ## What we deliberately didn't build
 - Accounts and sync.
 - Unit conversion and serving scaling: they need reliable amounts, which half the videos don't have.
@@ -69,7 +80,7 @@ in. A recipe that admits it's missing amounts is more useful in the kitchen than
 ## With another week
 1. Run the cooking test with real people and fix what they trip on. Nobody has cooked from Reelish yet.
 2. Widen the evaluation: longer videos, silent videos, more creators, repeat runs.
-3. Cook Mode: show only the new ingredients on steps that combine earlier ones (today "toss and serve" repeats
-   all 12 amounts).
-4. Settle the Instagram permission question, or switch Instagram off for the public.
+3. Run the longer, silent and other-creator videos we've planned (F1–F4) and fix what they show.
+4. Settle Instagram. There's no official way to turn a Reel link into recipe text (Meta's oEmbed is display-only).
+   So: keep it off publicly, or offer "paste the caption" instead of scraping.
 5. A cheap pre-check (title and description) so obvious non-recipes don't cost an AI call.
