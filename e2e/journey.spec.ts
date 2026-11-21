@@ -276,3 +276,13 @@ test("a link pasted before the page finishes loading isn't lost", async ({ page 
   await page.getByRole("button", { name: "Get the recipe" }).click();
   await expect(page).toHaveURL(/\/jobs\//);
 });
+
+test("going Back to the home page after starting leaves the examples usable", async ({ page }) => {
+  // Cache Components keeps the home page alive (React Activity), so its "starting" state survives Back.
+  await startExample(page, "Kaju Katli");
+  await page.goBack();
+  await expect(page).toHaveURL("/");
+  await expect(page.getByLabel("Starting")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Kaju Katli/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Get the recipe" })).toBeEnabled();
+});

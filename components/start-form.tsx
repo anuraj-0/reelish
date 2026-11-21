@@ -2,7 +2,7 @@
 
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { basePath } from "@/lib/base-path";
@@ -32,6 +32,10 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
     const typed = inputRef.current?.value;
     if (typed) setUrl(typed);
   }, []);
+
+  // Cache Components keeps this page alive (hidden) after we navigate away, so Back would show it
+  // still "starting" with every button disabled. The cleanup runs when the page is hidden.
+  useLayoutEffect(() => () => setSubmitting(null), []);
 
   async function start(value: string, source: string) {
     // Validate in the browser first for instant feedback; the server validates again.
