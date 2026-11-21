@@ -60,7 +60,11 @@ export function revertQuantity(edits: RecipeEdits, ingredientId: string): Recipe
   return { ...edits, quantities: rest };
 }
 
-/** Ingredient ids the user can still fill in. */
+/** Required ingredients still without an amount. Optional extras (e.g. a garnish) don't count. */
 export function missingQuantityCount(view: ViewRecipe): number {
-  return view.ingredients.filter((i) => i.displayQuantity === null).length;
+  return view.ingredients.filter((i) => i.displayQuantity === null && !i.optional).length;
+}
+
+export function requiredIngredientCount(view: ViewRecipe): number {
+  return view.ingredients.filter((i) => !i.optional).length;
 }

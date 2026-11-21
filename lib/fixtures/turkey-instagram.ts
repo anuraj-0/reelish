@@ -24,7 +24,7 @@ export const turkeyInstagram: Recipe = {
   totalTime: null,
   ingredients: [
     { id: "turkey", name: "Whole turkey", group: null, quantity: null, quantityStatus: "missing", preparation: "thawed, patted dry, giblets removed", optional: false, evidence: [said("make sure the turkey has thawed, you pat it dry and you take out the giblets", 9)] },
-    { id: "butter-rub", name: "Butter, softened", group: "Seasoned butter", quantity: null, quantityStatus: "missing", preparation: "softened", optional: false, evidence: [said("to soften butter add the seasonings", 4)] },
+    { id: "butter-rub", name: "Butter, softened", group: "Seasoned butter", quantity: null, quantityStatus: "missing", preparation: null, optional: false, evidence: [said("to soften butter add the seasonings", 4)] },
     { id: "seasonings", name: "Seasonings", group: "Seasoned butter", quantity: null, quantityStatus: "missing", preparation: null, optional: false, evidence: [said("add the seasonings", 4)] },
     { id: "orange", name: "Orange", group: null, quantity: { raw: "1", amount: 1, amountMax: null, unit: null }, quantityStatus: "stated", preparation: null, optional: false, evidence: [said("we also add an orange", 16)] },
     { id: "butter-melt", name: "Butter, for melting", group: "Cheesecloth soak", quantity: null, quantityStatus: "missing", preparation: null, optional: false, evidence: [said("we melt butter with a little bit of beer", 20)] },
