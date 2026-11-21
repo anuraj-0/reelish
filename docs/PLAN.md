@@ -409,6 +409,53 @@ Each milestone ends with something working, plus tests.
 - The "missing amounts" banner counts required ingredients only; optional garnishes still show
   "Not specified" in their row.
 
+## 5b. As built in M2 (2026-11-21)
+
+- **Database:** Node's built-in `node:sqlite`, so there's no native dependency. Tables: `jobs`, `recipes`,
+  `processing_runs`, `source_cache`, `meta`. A partial unique index allows only one queued or running job per
+  video.
+- **Jobs:** `POST /api/jobs` runs, in one transaction:
+  1. URL check;
+  2. recipe cache (returns `{recipeId}`);
+  3. join an in-flight job;
+  4. reuse a recent `not_a_recipe`/`too_long` (24 h) or `unavailable` (1 h) failure;
+  5. per-visitor hourly limit, using a salted hash, never the raw IP;
+  6. insert.
+
+  The worker (`npm run worker`, tsx) runs with concurrency 2:
+  - heartbeat every 5 s; stale after 30 s, then requeued or failed;
+  - 180 s cap per job;
+  - automatic retry only for transient `upstream_failed`, up to 2 attempts, with backoff;
+  - SIGTERM finishes running jobs within 20 s.
+- **Stages:** `metadata` (Data API; key sent in the `X-goog-api-key` header) → `linked_recipe` (at most 2 ranked
+  links, robots.txt per hop, https only, public IPs checked at connect time, 3 redirects, 2 MB, JSON-LD only,
+  relevance check) → `video` (one Gemini call: YouTube URL plus details, description and linked-recipe blocks
+  as labelled data) → `normalize`.
+- **Caching that prevents double spend:**
+  - video details: 6 h;
+  - linked pages and robots.txt: 24 h, not cached on transient failure;
+  - the AI answer: 7 days, keyed by prompt version, model and exact inputs, so retries and normalizer changes
+    cost nothing;
+  - invalid AI output is never cached.
+- **Budget:** a worst-case reservation in `processing_runs` before each call (atomic). `MAX_JOB_COST_USD` per
+  call, `DAILY_AI_BUDGET_USD` per rolling 24 h. A timed-out call is counted at its worst case.
+- **Repair:** if the output fails the schema, one *text-only* repair call is made (no second video read); then
+  `invalid_output`.
+- **Provenance guard:**
+  - drops evidence for sources that weren't provided;
+  - an amount claimed from the description or linked recipe must appear on a line naming the ingredient (by
+    quote, numbers or wording), otherwise it becomes "suggested";
+  - `model_estimate` amounts are dropped (missing stays missing);
+  - packaging amounts (`video_visual`) are "suggested";
+  - amounts are stripped from step text;
+  - timestamps beyond the video, or on steps not attributed to the video, are dropped;
+  - invented servings and tips are dropped;
+  - gaps that only repeat missing amounts are dropped.
+- **Modes:** `live` when both keys are set; `fixtures` otherwise or when forced (e2e). In live mode the saved
+  Instagram examples still run as simulated jobs; other Instagram links say "not supported yet".
+- **Not done in M2** (unchanged plan): `PLATFORM-CONSTRAINTS.md`, the `npm run eval` report, and deployment
+  (M4/M5).
+
 ## 6. Decisions (resolved 2026-11-21)
 
 | # | Decision |

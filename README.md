@@ -4,8 +4,9 @@ Paste a YouTube or Instagram cooking video and get a recipe you can actually coo
 overview for prepping, and a focused Cook Mode for following the steps. Amounts the creator didn't
 give are shown as **Not specified**, never guessed, and you can add your own.
 
-**Status: M1 (UX preview).** The app runs on four saved test recipes from the feasibility spike, with
-simulated processing jobs. Live YouTube/Instagram processing is M2/M3; see [docs/PLAN.md](docs/PLAN.md).
+**Status: M2.** YouTube videos and Shorts are processed live: YouTube Data API → the creator's linked
+recipe (JSON-LD) → Gemini via OpenRouter → validated recipe. Instagram is M3; until then only the saved
+Instagram examples work. See [docs/PLAN.md](docs/PLAN.md) and [docs/M2-RESULTS.md](docs/M2-RESULTS.md).
 
 ## Run locally
 
@@ -16,17 +17,33 @@ npm install
 npm run dev            # http://localhost:3000
 ```
 
-No API keys are needed for M1. For later milestones, copy `.env.example` to `.env.local`. Keys are
-read on the server only (`lib/env.ts`) and must never be prefixed with `NEXT_PUBLIC_`.
+### Live mode (YouTube)
 
-Try the examples on the home page:
-- Creamy Vegetable Soup (YouTube): complete recipe from the creator's linked recipe
-- Viral Crispy Pasta Salad (Instagram): recipe from the caption
-- Juicy Roast Turkey (Instagram): **missing quantities**
-- Kaju Katli Sparklers (YouTube): silent video, no amounts at all
-- A private video: failure state
+Put `YOUTUBE_API_KEY` and `OPENROUTER_API_KEY` in `.env.local` (or `.env`; see `.env.example`). With
+both set the app runs live; otherwise it falls back to the saved fixtures. Keys stay on the server
+(`lib/env.ts`) and must never be prefixed with `NEXT_PUBLIC_`.
 
-Any other valid link shows an honest "live processing isn't switched on yet" message.
+```bash
+npm run dev:all        # web app + background worker together (Ctrl-C stops both)
+# or in two terminals:
+npm run dev
+npm run worker         # processes queued jobs; safe to stop/restart, jobs resume
+```
+
+Jobs, recipes and caches live in SQLite at `data/reelish.db` (`REELISH_DB_PATH` to change).
+
+**Spend controls.** Each AI call reserves its worst-case cost before it runs. Calls are refused above
+`MAX_JOB_COST_USD` (default 0.12) or when the last 24 h would exceed `DAILY_AI_BUDGET_USD` (default 1).
+Each visitor can start `RATE_LIMIT_PER_HOUR` new videos per hour (default 10; cache hits are free).
+To check a video for free before paying:
+
+```bash
+npm run estimate -- https://www.youtube.com/shorts/VTR8vxBFGDY   # details, linked recipe, worst-case $; no AI call
+```
+
+Set `REELISH_PIPELINE=fixtures` to force the offline preview (the e2e tests do).
+
+### Offline examples
 
 ## Checks
 
@@ -45,9 +62,15 @@ app/                  routes: / (paste), /jobs/[id] (processing), /r/[id] (overv
 components/           UI (recipe/, cook/, ui/ = shadcn)
 hooks/                browser-only state (edits, checklist, cook progress) and screen wake lock
 lib/recipe/           Zod schema, labels, edits overlay, quantity parser
-lib/jobs/             job types (shared with M2) and the M1 simulated job store
+lib/jobs/             job types, SQLite job store, start/dedup/rate-limit service, worker loop, fixture jobs
+lib/pipeline/         YouTube pipeline, prompt + model-output schema, normalizer + provenance guard
+lib/sources/          YouTube Data API, SSRF-safe fetcher (robots.txt), linked-recipe JSON-LD
+lib/llm/              OpenRouter client
+lib/db/               SQLite (node:sqlite); the only module that knows the database
+worker/               background worker entry (npm run worker)
 lib/fixtures/         saved test recipes from the spike
 lib/url.ts            link parsing: host allowlist, canonical URL
 spike/                feasibility experiments and evaluation (frozen)
 docs/PLAN.md          architecture and milestones
+docs/M2-RESULTS.md    live YouTube test results, cost and latency
 ```
