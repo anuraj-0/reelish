@@ -1,6 +1,7 @@
 # Reelish: architecture, data model and implementation plan
 
-Status: **draft for review**, 2026-11-21. Evidence: `spike/results/EVALUATION.md`.
+Status: **approved with adjustments**, 2026-11-21. Evidence: `spike/results/EVALUATION.md`.
+Decisions are recorded in §6; they override anything earlier in this document.
 
 Core insight from the spike: the video alone often lacks quantities. The creator's caption, description
 or linked recipe usually has them. So we gather the **creator's text first** and run video, audio or
@@ -29,9 +30,13 @@ visual analysis only when it adds something.
 ### Stack
 - **Next.js (App Router) + TypeScript + Tailwind + shadcn/ui.** No reason to deviate.
 - **Zod** for the recipe schema, LLM output validation, environment variables and API inputs.
-- **Drizzle ORM + SQLite (libSQL).** Uses a local file in development and the same code against Turso
-  if we host serverless. One small database for recipes, jobs, source cache and processing runs.
-  No Redis and no separate queue.
+- **On-server database behind a small repository module (`lib/db/`).** SQLite (a file under
+  `/var/lib/reelish/`) for the MVP. If PostgreSQL is already on the VPS, we use a separate `reelish`
+  database and role instead. Only `lib/db/` knows which one; the rest of the app calls functions like
+  `getRecipe`, `claimNextJob` and `saveRecipe`. One database holds recipes, jobs and the source cache.
+  No Redis and no queue service.
+- **Background worker:** a second process from the same codebase (`npm run worker`) running as its own
+  systemd unit, `reelish-worker`. It polls the jobs table. See "Jobs" below.
 - **Vitest** for the `lib/` code, run against spike fixtures with no network. Playwright for one
   end-to-end smoke test, added later.
 - The plain `fetch` API for HTTP. No provider SDKs, since each integration is 1–3 endpoints.
@@ -71,8 +76,8 @@ spike/                        # frozen
    2. build the canonical key `youtube:<id>` or `instagram:<shortcode>`;
    3. look up the cache: if a recipe exists for this key and pipeline version, **return it immediately**;
    4. if a job for the same key is already running, **return that job** (deduplication);
-   5. otherwise check the rate limit and budget, create the recipe row with `status: processing`,
-      start the pipeline in the background with Next.js `after()`, and return `{recipeId}`.
+   5. otherwise check the rate limit and budget, insert a `jobs` row (`status: queued`) and return
+      `{jobId}`. The HTTP request never waits for processing.
 2. The browser goes to `/r/[id]` right away. While the status is `processing`, the page polls
    `GET /api/recipes/[id]` about every 1.5 s and shows **named stages**:
    "Reading the caption…" → "Checking the creator's recipe…" → "Listening to the video…" →
@@ -84,18 +89,37 @@ spike/                        # frozen
 Why polling and not SSE or websockets: it's the simplest thing that works on any host and survives page
 reloads. The extra requests are negligible at our scale.
 
+### Jobs (independent of HTTP request lifetimes)
+- **`jobs` table:** `id`, `key`, `url`, `status` (`queued`, `running`, `succeeded`, `failed`),
+  `stage`, `attempts`, `maxAttempts` (2), `lockedAt`, `heartbeatAt`, `errorCode`, `recipeId`,
+  `createdAt`, `finishedAt`.
+- **Worker loop:** every second, claim the oldest `queued` job atomically (`UPDATE … WHERE status =
+  'queued'`), set `running` and `lockedAt`, run the stages, update `stage` and `heartbeatAt` as it goes,
+  and finish with `succeeded` or `failed`. Concurrency is 2, a constant.
+- **Timeouts:** each stage has its own timeout (§ timeouts), and the whole job is capped at 180 s.
+- **Retries:** only `upstream_failed` errors are retried, up to `maxAttempts`, with backoff.
+  `unavailable` and `not_a_recipe` fail immediately.
+- **Recovery after restart:** on startup, and every minute, any `running` job whose `heartbeatAt` is
+  older than 60 s goes back to `queued` if it has attempts left, otherwise to `failed`. Stage outputs
+  are in the source cache, so a resumed job doesn't re-spend credits.
+- **Shutdown:** on SIGTERM, stop claiming jobs and let running ones finish within systemd's stop
+  timeout. Anything still unfinished is recovered by the rule above.
+
 ### YouTube pipeline
 1. **YouTube Data API `videos.list`**: title, description, channel, duration, thumbnail. 1 quota unit
    out of 10,000/day.
 2. **Linked recipe:** find recipe links in the description (see §4) and fetch at most 2 pages.
 3. **One Gemini call** with the YouTube URL plus all text sources, using the provenance prompt.
    - Spike numbers: about 4–6 s and $0.004–0.006 per Short.
-   - Videos over **15 min** whose text is already sufficient get a **text-only** call instead.
-   - Videos over **30 min** are rejected with a clear message.
-   - *(Decision D3.)*
+   - Videos over **15 min** are rejected with a clear message for now (decision D5). We'll raise the
+     limit after testing longer videos.
 4. **Normalize and validate** (§4), then save.
 
 ### Instagram pipeline
+Isolated in `lib/sources/instagram/`, behind one function, `fetchInstagramSources(shortcode)`. It can
+be turned off with `INSTAGRAM_ENABLED=false`, because its reliability and platform permission are
+still unresolved.
+
 1. **Supadata metadata** (1 credit): caption, author, duration.
 2. **Linked recipe** from the caption (as for YouTube). "Link in bio" can't be followed and is reported
    as missing.
@@ -346,8 +370,9 @@ ingredient with quantities from different sources that differ after unit normali
 | `inputTokens`, `outputTokens`, `costUsd` | from OpenRouter usage |
 | `credits` | from the Supadata header |
 
-Plus structured JSON logs (redacted) and a password-protected `/admin/runs` page showing recent jobs,
-failures, cost per recipe and daily totals. The spike's ledger becomes this.
+These are written as structured JSON logs (one line per stage, redacted, collected by journald on the
+VPS), plus the `processing_runs` table. **No dashboard in the MVP.** `npm run eval` produces a Markdown
+report with accuracy, cost and latency on the test set.
 
 ---
 
@@ -361,20 +386,25 @@ Each milestone ends with something working, plus tests.
 | **M1** | **Full UI journey on fixture data**: paste page → overview (ingredient groups, labels, Not specified, conflicts, gaps, link to original) → Cook Mode (one step per screen, step quantities, large tap targets, Wake Lock, YouTube seek-to-step) → **inline quantity edits** in localStorage with revert | Click-through with the soup and turkey fixtures on a phone; edits survive reload |
 | **M2** | YouTube end to end: URL parser + allowlist, Data API, safe linked-recipe fetch + JSON-LD, Gemini call, Zod + repair retry, provenance guard, SQLite storage + recipe cache, job + polling page | Pasting the soup Short gives a cookable recipe with timestamps; fixture tests for guard and parser; SSRF tests |
 | **M3** | Instagram end to end: Supadata metadata → sufficiency → transcript → extract fallback → text-only AI call; stage-by-stage progress UI; source cache | The 3 test Reels give the expected complete/partial results; credit use per Reel matches the plan |
-| **M4** | Hardening + launch: error states, timeouts/retries, rate limit, budget caps, `processing_runs` + `/admin/runs`, `PLATFORM-CONSTRAINTS.md`, `npm run eval` (offline fixtures; optional live mode for the 6 test URLs with a spend cap), deploy | Eval report on the 6 URLs; deliberate failure cases show the right messages; deployed URL |
-| Later | Serving scaling, unit conversion, step timers, saved recipes and accounts, Android share target / PWA, more platforms | |
+| **M4** | Hardening: error states, timeouts/retries, worker recovery, rate limit, budget caps, structured logs, `PLATFORM-CONSTRAINTS.md`, `npm run eval` report (offline fixtures; optional live mode for the 6 test URLs with a spend cap) | Eval report on the 6 URLs; deliberate failure cases show the right messages; killing the worker mid-job recovers |
+| **M5** | Deploy to the existing VPS: **inspect first, change nothing existing without approval**. Separate Linux user, `/opt/reelish`, its own port, its own env file (`/etc/reelish/env`, mode 600), its own database, the systemd units `reelish-web` + `reelish-worker`, and a new Nginx server block for the Reelish domain only | Live URL; DeepClean.app untouched and still healthy |
+| Later | Serving scaling, unit conversion, step timers, adding new ingredients, Android share target / PWA, more platforms, a cost dashboard if logs aren't enough |
 
 ---
 
-## 6. Decisions needed
+## 6. Decisions (resolved 2026-11-21)
 
-| # | Decision | Options | Recommendation |
-|---|---|---|---|
-| D1 | **Hosting** | (a) Vercel + Turso: serverless; `after()` is bounded by the function's max duration (to verify against Instagram's ~25–50 s jobs). (b) One Node server (Railway, Fly, VPS) + SQLite file: no duration limits, simplest runtime. | Code works for both (libSQL). Develop locally now; decide by M4. Lean **(b)** if Vercel's limits look tight. |
-| D2 | **Accounts** | None in the MVP; edits in localStorage, so they're lost across devices. Or add auth now. | **No accounts** in the MVP. |
-| D3 | **YouTube video pass** | Always one combined call (video + text, about $0.005, gives timestamps). Or call Gemini with video only when the text is insufficient. | **Always combined** up to 15 min. Cheap, gives Cook Mode timestamps, and it's one code path. |
-| D4 | **Instagram in production** | Ship Supadata as a documented risk (beta). Or limit Instagram to an "experimental" label. Supadata beyond the free 100 credits needs a paid plan (Basic $5/mo on annual billing, 300 credits), outside the $20 AI budget. | Ship as **beta** with the constraints documented; start on the free plan. |
-| D5 | **Maximum video length** | 15 / 30 / 60 min | **30 min** maximum. Text-only above 15 min when the text is sufficient. |
-| D6 | **Linked recipe parsing** | JSON-LD only, or a fallback that scrapes HTML | **JSON-LD only** for the MVP. It's cleaner, more reliable, and what recipe sites publish for this purpose. |
+| # | Decision |
+|---|---|
+| D1 | **Hosting:** the existing VPS (which also runs DeepClean.app), as an independent app behind Nginx with its own port, env, database and systemd services. Inspect before deploying; don't modify existing services without approval. |
+| D2 | **Accounts:** none in the MVP. Edits, checked ingredients and Cook Mode progress live in the browser's localStorage. |
+| D3 | **YouTube:** direct Gemini video processing, enriched with the creator's description and linked recipe. |
+| D4 | **Instagram:** caption first, then transcript, then visual only if needed. Isolated module plus a feature flag; permission questions are documented, not resolved. |
+| D5 | **Maximum video length:** 15 min to start. |
+| D6 | **Linked recipes:** JSON-LD only for the MVP. |
+| D7 | **Database:** on-server. SQLite by default; PostgreSQL with a separate DB and role if it's already installed. Access goes through `lib/db/` only. |
+| D8 | **Background processing:** persisted jobs table plus a separate worker process (see "Jobs"). |
+| D9 | **Cost tracking:** structured server logs plus the eval report. No dashboard. |
+| D10 | **Edits:** stored as an overlay; the original extracted recipe is never modified. |
 
 Prerequisites before M2: a free **YouTube Data API key**. Node 22 is available through nvm.
