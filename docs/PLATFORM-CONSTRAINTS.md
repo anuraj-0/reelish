@@ -15,7 +15,12 @@ This is an engineering summary, not legal advice. Items marked **open** need a d
     complying with platform terms.
   - Instagram's terms prohibit unauthorised automated collection.
   - *Meta v. Bright Data* (2024) favoured logged-out scraping of public data, but that's one lower-court ruling.
-    **Acceptable for an MVP or beta only as a documented risk.**
+  - **We have no permission from Instagram/Meta or from the creators** to process their Reels. Successful tests,
+    a small audience or a "beta" label don't change that. Our tests show the integration *works*, not that it
+    is *allowed*.
+  - Turning Instagram on for public visitors is a risk the owner decides to accept (or not) before deployment;
+    it is not resolved by anything in this codebase. Until that decision, deploy with `INSTAGRAM_ENABLED=false`
+    (the saved examples keep working).
 - **How we limit exposure:**
   - Public Reels only.
   - Creator text first; paid transcript or visual steps only when needed.
