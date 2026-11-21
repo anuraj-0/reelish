@@ -7,7 +7,10 @@ decision history.
 ## 1. Find the sessions
 - Raw transcripts: `~/.claude/projects/-Users-jimmy-Documents-programming-Projects-Reelish/`.
   - `725fea78-….jsonl`: spike through M3 (about 22 MB), plus its subagent transcripts (`agent-*.jsonl`).
-  - `5bd821a9-….jsonl`: this M4 session.
+  - `5bd821a9-….jsonl`: the M4 session.
+  - `8891a5d9-….jsonl`: deployment and final docs (2026-11-22).
+- **Exported 2026-11-22** to `../Reelish-session-exports/` (next to the repo, not in it): `raw/` copies plus
+  Markdown renderings made by `scripts/export-sessions.py`. See that folder's `README.md`.
 - Inside each session, `/export` writes a readable copy of the conversation to a file. Export **every** session
   that produced commits.
 - Keep the raw `.jsonl` files unchanged as the original record. Share exports or redacted copies, never edited
@@ -18,7 +21,8 @@ decision history.
   (`OPENROUTER_API_KEY`, `YOUTUBE_API_KEY`, `SUPADATA_API_KEY`). **0 matches** in all 15 files.
 - [x] **Key-shaped strings** (`sk-or-v1-…`, `AIza…`, `sd_…`): one match, a fake test key in test code. Nothing
   real.
-- [ ] Re-run the scan on the **final** exported files, since this session will have grown. Command, which prints
+- [x] Scan of the 2026-11-22 export (raw and Markdown): **no key values, no key-shaped strings, no tokens.**
+- [ ] Re-run the export and the scan once the deployment session has ended; that export was a snapshot. Command, which prints
   only counts:
   ```bash
   python3 - <<'EOF'
@@ -39,7 +43,8 @@ decision history.
 - [ ] Your email, and any name you don't want shared. The git author name appears in commits.
 - [ ] Local paths (`/Users/jimmy/…`) and machine details (a LAN IP appeared in a server log). Usually harmless;
   your call.
-- [ ] The VPS hostname or IP, if any appear later.
+- [ ] The VPS IP, two unrelated servers' IPs and SSH key file names appear in session `8891a5d9` (the local
+  SSH config was read during deployment). No key contents.
 - [ ] Creator names and video links are public and part of the evaluation. Keep them.
 
 ## 4. Keep the history honest
