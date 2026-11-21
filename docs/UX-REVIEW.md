@@ -22,7 +22,7 @@ Before/after screenshots: `docs/screenshots/m1-before-review/` and `docs/screens
 |---|---|---|---|---|
 | 1 | **Cook Mode on small phones hid the step's amounts.** On a 375×667 screen only 1 of 5 ingredient rows was visible above Back/Next; the instruction was oversized and the detail chips stacked. | Mid-cook, the amount is what you glance at. Scrolling with messy hands is the problem Reelish exists to solve. | Genuine usability | **Fixed.** Text scales with the screen, chips share one row, rows are compact, the header is tighter. Now all 5 rows are visible on 375×667 (an e2e test requires at least 4). |
 | 2 | **No way to see other steps in Cook Mode.** Only Back/Next. | Cooks look ahead ("do I need the oven soon?") and jump back. Paging one step at a time is slow and loses your place. | Genuine usability | **Fixed.** A visible "Steps" button opens a sheet with every step; the current one is highlighted; tap to jump. |
-| 3 | **Desktop and tablet are a stretched phone layout.** One ~630 px column with large empty margins, a thumbnail that fills the first screen, ingredients and steps never visible together, and the same narrow Cook Mode on a big screen. | On a laptop or tablet propped on the counter you want ingredients and method side by side, and the step readable from across the kitchen. | Genuine (usefulness); the specific layout is a design choice | **Not changed yet.** Options below. |
+| 3 | **Desktop and tablet are a stretched phone layout.** One ~630 px column with large empty margins, a thumbnail that fills the first screen, ingredients and steps never visible together, and the same narrow Cook Mode on a big screen. | On a laptop or tablet propped on the counter you want ingredients and method side by side, and the step readable from across the kitchen. | Genuine (usefulness); the specific layout is a design choice | **Implemented: option A** (see the section at the end). |
 | 4 | **The overview's first screen didn't answer "am I ready?"** The thumbnail took about 40% of a small phone screen; there were no counts and no positive "all amounts given". | You should know in about two seconds how big the job is and whether anything's missing. | Mostly genuine; image size is partly taste | **Fixed.** 2:1 thumbnail on phones, ingredient and step counts in the facts row, and a green "All amounts given…" line (or the existing amber banner). |
 | 5 | **Amounts written inside instructions could contradict edits.** The saved recipes keep amounts out of step text, but live AI output may write "add 2 cups broth". If you then edit the broth, the step disagrees with the list. | Silent inconsistency is worse than a missing amount, because it's trusted. | Genuine correctness risk | **Guarded.** `quantitiesInStepText()` detects it; a test keeps all saved recipes clean; M2's normalizer must keep it empty (rewrite or flag). |
 
@@ -73,3 +73,18 @@ Overview ≥1024px                                   Cook Mode ≥1024px
 
 Recommendation: **A**, built mobile-first so phones are untouched, with the tablet-portrait
 refinements included.
+
+## Option A as built (2026-11-21)
+
+- **≥1024px, overview:** a header row (thumbnail | creator, title, facts, readiness, "Start cooking"),
+  then a sticky ingredients column (with the missing-amounts note) beside the steps, notes and
+  sources. The content width is capped at 72rem and step text at 65ch. The bottom "Start cooking"
+  bar is phone-only.
+- **≥1024px, Cook Mode:** the active instruction (about 42px, capped at about 32 characters per line)
+  with its amounts (max 36rem) and Back/Next in the main column; a sticky "All steps" rail on the
+  right that keeps the current step scrolled into view. The "Steps" sheet button is hidden there.
+- **768–1023px (tablet portrait):** single column. Cook Mode uses the larger instruction size and
+  centres the step between the header and the controls instead of leaving a large gap.
+- **<768px:** unchanged from the tested phone layout.
+- Independently scrolling columns fade at the bottom so cut-off content reads as "more below".
+- Screenshots: `docs/screenshots/m1-responsive-layout/` (375, 820, 1180, 1280, 1920 px).
