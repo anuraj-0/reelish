@@ -1,7 +1,8 @@
 # Reelish: product and engineering notes
 
 Reelish turns a YouTube or Instagram cooking video into a recipe you can cook from: an overview for
-shopping and prep, and a Cook Mode that shows one step at a time with that step's amounts.
+shopping and prep, and a Cook Mode that shows one step at a time with that step's amounts. It's live at
+<https://deepclean.app/reelish>.
 
 ## The problem we actually solved
 Cooking from a video means pausing, scrubbing back, and guessing amounts. The obvious approach, "ask an AI to
@@ -24,7 +25,9 @@ in. A recipe that admits it's missing amounts is more useful in the kitchen than
 - **Boring infrastructure.**
   - SQLite, a jobs table, and one worker process.
   - No queues, no Redis, no accounts. Edits and cooking progress live in the browser.
-  - It runs on the VPS we already have.
+  - It runs on the VPS we already have, beside DeepClean.app, under its own user, port, Node and database.
+    The VPS has 1 vCPU and under 1 GB of RAM, so we build on a laptop and ship a 51 MB standalone bundle. Both
+    processes together use about 80 MB.
 - **Spend is reserved before it's spent.** Each paid call books its worst-case cost first, under a per-call
   cap and a 24-hour budget. Paid results are cached, so retries, crashes and normalizer changes don't pay
   twice.
@@ -60,10 +63,12 @@ in. A recipe that admits it's missing amounts is more useful in the kitchen than
 - **Partial recipes are a normal outcome, not an error.** The page says up front what's missing.
 
 ## Cost
-- About **$0.01 of AI per new recipe**. Measured: $0.0065–0.0169, mean $0.0093 over 6 recipes.
+- About **$0.01 of AI per new recipe**. Measured: $0.0059–0.0169 over 9 recipes (6 in development, 3 on
+  the live site).
 - Instagram adds 1 Supadata credit, or more if it needs a transcript or visual notes.
-- A repeat visit costs nothing.
-- Development so far: about $0.09 of the $20 OpenRouter budget.
+- A repeat visit costs nothing. A non-recipe costs one AI call ($0.002–0.007); too-long and missing videos cost $0.
+- Everything so far, development plus production testing: **$0.11 of OpenRouter** and 25 of 100 free Supadata
+  credits. The live app caps itself at $0.50 a day.
 
 ## What we learned
 - **The data decides usefulness, not the model.**
@@ -72,15 +77,20 @@ in. A recipe that admits it's missing amounts is more useful in the kitchen than
     against the video).
   - The biggest lever is finding the creator's text, not a better prompt.
 - **Instagram is the weak point, and not for technical reasons.** It works through Supadata, an unofficial
-  scraping service. We have no permission from Meta or the creators, and testing doesn't change that. It's
-  isolated behind a flag, and turning it on publicly is a separate decision.
-- **Tests on localhost hid deployment bugs.** Running the production build with proxy headers found a redirect
-  to `localhost` and a forgeable rate-limit key. All the e2e tests had passed.
+  scraping service. We have no permission from Meta or the creators, and testing or paying Supadata doesn't
+  change that. It's on in the live app because the owner chose to accept that risk. It's not an authorization,
+  and one flag turns it off.
+- **Tests on localhost hid deployment bugs, twice.**
+  - Running the production build with proxy headers found a redirect to `localhost` and a forgeable rate-limit
+    key.
+  - Then, on the real server, unknown recipe links returned 500 instead of 404. Behind Nginx, Next.js treated
+    our own 404 rewrite as an external URL. All the e2e tests had passed both times.
 
 ## With another week
 1. Run the cooking test with real people and fix what they trip on. Nobody has cooked from Reelish yet.
-2. Widen the evaluation: longer videos, silent videos, more creators, repeat runs.
-3. Run the longer, silent and other-creator videos we've planned (F1–F4) and fix what they show.
-4. Settle Instagram. There's no official way to turn a Reel link into recipe text (Meta's oEmbed is display-only).
-   So: keep it off publicly, or offer "paste the caption" instead of scraping.
-5. A cheap pre-check (title and description) so obvious non-recipes don't cost an AI call.
+2. Widen the evaluation: the planned longer, silent and other-creator videos (F1, F2, F4), more creators,
+   repeat runs.
+3. Settle Instagram. There's no official way to turn a Reel link into recipe text (Meta's oEmbed is
+   display-only), so the lasting answer is probably "paste the caption" or creator opt-in instead of scraping.
+4. A cheap pre-check (title and description) so obvious non-recipes don't cost an AI call.
+5. External uptime alerts and a separate, low-limit production API key.

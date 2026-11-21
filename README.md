@@ -4,14 +4,16 @@ Paste a YouTube or Instagram cooking video and get a recipe you can actually coo
 overview for prepping, and a focused Cook Mode for following the steps. Amounts the creator didn't
 give are shown as **Not specified**, never guessed, and you can add your own.
 
-**Status: M3.** YouTube videos and Shorts, and public Instagram Reels, are processed live.
+**Live at <https://deepclean.app/reelish>.** YouTube videos and Shorts, and public Instagram Reels, are
+processed live. Instagram is on by the owner's decision to accept an unresolved permission risk; see
+[docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
 - **YouTube:** Data API → the creator's linked recipe → Gemini watches the video.
 - **Instagram:** Supadata caption → linked recipe → transcript only if needed → one text-only AI call.
 
 See [docs/PLAN.md](docs/PLAN.md), [docs/M2-RESULTS.md](docs/M2-RESULTS.md),
 [docs/M3-RESULTS.md](docs/M3-RESULTS.md), [docs/M4-EVALUATION.md](docs/M4-EVALUATION.md),
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (draft) and [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
-Submission drafts: [docs/submission/](docs/submission/).
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (as deployed) and [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
+Submission documents: [docs/submission/](docs/submission/).
 
 ## Run locally
 
@@ -62,6 +64,10 @@ npm run test:e2e       # Playwright journeys + axe accessibility scans, mobile a
 
 The e2e tests start a dev server on port 3100 (or reuse one) and use Playwright's full Chromium
 (`npx playwright install chromium`). Set `SCREENSHOT_DIR=/some/dir` to save screenshots.
+
+Against the deployed site (real pipeline; new videos cost about $0.01, repeats are cached):
+`node scripts/smoke-prod.mjs https://deepclean.app/reelish`. Release builds: `scripts/package-release.sh`
+(see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
 ## Layout
 

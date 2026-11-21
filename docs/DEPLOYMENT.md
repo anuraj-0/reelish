@@ -1,327 +1,164 @@
-# Deployment plan: Reelish on the shared VPS (draft for approval)
+# Deployment: Reelish on the shared VPS
 
-**Status: plan only.** Nothing has been run on the server. Step 0 is a read-only inspection. Every later step
-needs your approval. DeepClean.app's files, services, Nginx server block and certificates are **not touched**.
+**Status: live at <https://deepclean.app/reelish>** since 2026-11-21 (release `4d6083c`). The server also runs
+DeepClean.app, its license server, ViaFix and BeatPath. Reelish shares only the machine and the Nginx process.
+DeepClean's files, database, Node and services were not touched.
 
-Placeholders to confirm during inspection: domain `reelish.example.com`, port `3101`, Node path
-`/opt/reelish/node`.
+## The server (inspected 2026-11-21, read-only)
 
-## Isolation from DeepClean.app
-
-| Shared | Separate for Reelish |
-|---|---|
-| The machine (CPU, RAM, disk) and the Nginx process | Linux user, Node binary, code directory, port, systemd units, env file, database, backups, logs (`-u reelish-*`), Nginx server block, certificate, rate-limit zones |
-
-- `MemoryMax` on both units caps Reelish's RAM, so a runaway job can't starve DeepClean.
-- Nothing in this plan edits, restarts or reads DeepClean's files, units or certificates. The only shared
-  action is `nginx -t && systemctl reload nginx`.
+| Item | Found | Consequence |
+|---|---|---|
+| Machine | DigitalOcean droplet, Ubuntu 24.04.3, **1 vCPU, 961 MB RAM** (~420 MB available), 2 GB swap, **8.7 GB disk, 1.6 GB free** | `npm ci` (~650 MB) plus `next build` (1–2 GB RAM) on the server would have starved the other apps. **We build on the Mac and ship a 51 MB bundle** |
+| Running | nginx 1.24, PostgreSQL 16, DeepClean license (gunicorn :5001), BeatPath (uvicorn :5002), ViaFix API (:5003) and web (Next.js :5004) | Port **3101** was free (checked with `ss -ltn` before use) |
+| Node | no system `node`; ViaFix uses `/opt/node` (v22.23.4) | Reelish has **its own** Node 22.23.5 in `/opt/reelish/node` (official tarball, SHA-256 checked, npm removed) |
+| Nginx | `sites-enabled/deepclean.app` holds the `deepclean.app` 443 block; ViaFix is mounted under `/ViaFix` via `include snippets/viafix.conf` | Reelish follows the same pattern under `/reelish` |
+| TLS / DNS | Let's Encrypt cert `deepclean.app`, renewed by `certbot.timer`; DNS points straight at the droplet (no Cloudflare: `Server: nginx`, no `cf-ray`) | **No new certificate or DNS record**; `$remote_addr` is the real visitor IP |
+| Firewall | ufw: deny incoming except 22, 80, 443 | No change. 3101 is bound to 127.0.0.1 only |
 
 ## Shape
 
 ```
-Internet ─▶ Nginx (existing) ─┬─ deepclean server block (unchanged)
-                              └─ reelish.example.com ─▶ 127.0.0.1:3101  reelish-web.service    (next start)
-                                                                         reelish-worker.service (jobs)
-                                                both ─▶ /var/lib/reelish/reelish.db (SQLite, WAL)
+Internet ─▶ Nginx ── deepclean.app 443 block (existing)
+                      ├─ /ViaFix/…   → 127.0.0.1:5004 / 5003   (unchanged)
+                      ├─ /reelish/…  → 127.0.0.1:3101  reelish-web.service    (Next.js standalone, basePath /reelish)
+                      └─ /           → static DeepClean site (unchanged)
+                                        reelish-worker.service (jobs)
+                              both ─▶ /var/lib/reelish/reelish.db (SQLite, WAL)
 ```
 
 | Item | Value |
 |---|---|
-| Linux user | `reelish` (system user, no login shell, no sudo) |
-| Code | `/opt/reelish/releases/<git-sha>/`, with `/opt/reelish/current` a symlink to the live release |
-| Node | Node 22 LTS, **its own copy** at `/opt/reelish/node` (official tarball). We don't touch whatever Node DeepClean uses |
-| Port | `127.0.0.1:3101`, localhost only (`next start -H 127.0.0.1`). The default binds every interface |
+| Linux user | `reelish` (system user, `nologin`, no sudo) |
+| Code | `/opt/reelish/releases/<sha>/` (root-owned, read-only to the app); `/opt/reelish/current` → live release |
+| Node | `/opt/reelish/node` (22.23.5; ≥ 22.13 needed for `node:sqlite`) |
+| Port | `127.0.0.1:3101` |
 | Secrets | `/etc/reelish/env`, `root:root`, mode `600`, read by systemd (`EnvironmentFile`) |
-| Database | `/var/lib/reelish/reelish.db` (+ `-wal`, `-shm`), owned by `reelish`, directory mode `700` |
-| Backups | `/var/backups/reelish/`, daily, 14 kept |
-| Logs | stdout → journald (`journalctl -u reelish-web -u reelish-worker`). JSON lines, secrets redacted |
+| Database | `/var/lib/reelish/reelish.db` (+ `-wal`, `-shm`), owner `reelish`, directory mode `700` |
+| Backups | `/var/backups/reelish/reelish-YYYY-MM-DD.db`, daily at ~03:30 UTC, 14 days kept |
+| Logs | journald: `journalctl -u reelish-web -u reelish-worker` (JSON lines; key values never logged) |
+| Memory | measured ~55 MB (web) + ~24 MB (worker); capped at `MemoryMax=320M` / `200M` |
 
-## Runtime requirements (verified locally)
-- **Node ≥ 22.13** for `node:sqlite` without a flag. Tested on 22.23.5. Node 20, the default `node` on this
-  Mac, fails with `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite`. **Check what the VPS has; don't upgrade the
-  system Node if DeepClean uses it.**
-- Next.js 16.4.6 (needs ≥ 20.9; satisfied).
-- **The worker runs through `tsx`, a devDependency**, so install with `npm ci` (dev dependencies included), not
-  `npm ci --omit=dev`.
-- `sharp` (image optimisation) ships platform-specific binaries. **Run `npm ci` on the VPS**; never copy
-  `node_modules` from the Mac.
-- Disk per release: about 650 MB `node_modules` plus up to about 300 MB `.next`. We keep 2 releases.
-- `next build` can need about 1–2 GB of RAM. Check free memory (`free -m`) during inspection. If memory is
-  tight, build while traffic is low, or add swap (asks first).
-- No other system packages are needed. Backups use Node's SQLite, not the `sqlite3` CLI.
+All unit files, scripts and Nginx snippets are in [`deploy/`](../deploy/).
 
-## Environment (`/etc/reelish/env`)
+## Why the build is different from a normal Next.js deploy
+
+- `next.config.ts` reads **`REELISH_BASE_PATH`** at build time (`/reelish` for this server, empty for local
+  dev and the e2e tests). Links and the router get the prefix automatically; raw `fetch()` calls, the no-JS form
+  action and the `/start` redirects use `lib/base-path.ts`.
+- **`output: "standalone"`**: the server runs `node server.js` with no `node_modules` install.
+- **The worker is one esbuild bundle** (`worker.mjs`, ~850 KB, `--conditions=react-server`), so `tsx` isn't
+  needed in production.
+- **`images.unoptimized`**: the only images are YouTube thumbnails, loaded straight from `i.ytimg.com`. No
+  `sharp` binary has to match the server, and the 1 vCPU does no resizing.
+- `scripts/package-release.sh` refuses to run with uncommitted app changes, and **deletes any `.env*` or `*.db`
+  file** that Next's file tracing copies into the bundle. It did copy the local `.env` and `data/reelish.db` on
+  the first build; the script removed both, and a scan of the bundle found no key values.
+
+## Environment (`/etc/reelish/env`, values not shown)
 
 ```ini
+YOUTUBE_API_KEY=…            # same key as development (owner's decision)
+SUPADATA_API_KEY=…           # same key as development
+OPENROUTER_API_KEY=…         # same key as development: $20 credit limit on the key itself (owner's decision)
 NODE_ENV=production
-REELISH_PIPELINE=live            # fail loudly instead of quietly serving fixtures if a key is missing
+NEXT_TELEMETRY_DISABLED=1
+REELISH_PIPELINE=live        # a missing key fails jobs loudly instead of serving fixtures
 REELISH_DB_PATH=/var/lib/reelish/reelish.db
-TRUST_PROXY=true                 # only because Nginx sets X-Real-IP; see below
-YOUTUBE_API_KEY=…                # production key, restricted to the YouTube Data API
-OPENROUTER_API_KEY=…             # a NEW production key with a credit limit (not the dev key)
-SUPADATA_API_KEY=…               # only if Instagram is switched on
-INSTAGRAM_ENABLED=false          # until you decide on the permission risk (PLATFORM-CONSTRAINTS.md)
+TRUST_PROXY=true             # Nginx overwrites X-Real-IP / X-Forwarded-For
+INSTAGRAM_ENABLED=true       # owner accepted the permission risk, see PLATFORM-CONSTRAINTS.md
 DAILY_AI_BUDGET_USD=0.50
 MAX_JOB_COST_USD=0.12
 RATE_LIMIT_PER_HOUR=6
 SUPADATA_DAILY_CREDITS=10
-SUPADATA_MONTHLY_CREDITS=60      # leaves headroom on the free plan's 100
+SUPADATA_MONTHLY_CREDITS=60
+SUPADATA_MAX_JOB_CREDITS=12
 ```
 
-The release directory must contain **no `.env` files**. The worker and Next.js both load `.env*` from their
-working directory, and those would override nothing but could leak dev keys into production.
+**Deviation from the plan:** the plan called for a separate production OpenRouter key with its own small limit.
+The owner chose to reuse the development key (limit $20, $0.11 used on 2026-11-21). The app's $0.50/24 h cap is
+therefore the main ceiling; the key limit is the backstop. A separate key can be swapped in later by editing
+`OPENROUTER_API_KEY` and restarting both units.
 
-## systemd units
+## Nginx changes (approved by the owner, applied 2026-11-21)
 
-`/etc/systemd/system/reelish-web.service`
-```ini
-[Unit]
-Description=Reelish web (Next.js)
-After=network.target
+1. New `/etc/nginx/conf.d/reelish-limits.conf`: `limit_req_zone`s `reelish_start` (6 r/min) and `reelish_all`
+   (10 r/s). No other zone existed.
+2. New `/etc/nginx/snippets/reelish.conf` and `reelish-proxy.conf`: `location = /reelish` and
+   `location ^~ /reelish/` → `127.0.0.1:3101`. `^~` stops DeepClean's regex locations (`.js`/`.css`/image caching,
+   `/index` rewrites) from catching Reelish paths. Job starts (`/reelish/api/jobs`, `/reelish/start`) get the
+   tighter zone; polling doesn't.
+3. One line in DeepClean's server block, after the ViaFix include: `include snippets/reelish.conf;`. A backup of
+   the original file is in `/root/deepclean.app.nginx.bak-*`.
+4. Follow-up (approved): removed `X-Forwarded-Proto` from `reelish-proxy.conf`. With it, unknown recipe links
+   returned **500** instead of 404: Next 16 sends the `proxy.ts` 404 rewrite out as an external request to
+   `https://localhost:3101`, a plain-HTTP port. Reelish doesn't read the header anywhere.
 
-[Service]
-User=reelish
-Group=reelish
-WorkingDirectory=/opt/reelish/current
-EnvironmentFile=/etc/reelish/env
-Environment=PATH=/opt/reelish/node/bin:/usr/bin:/bin
-Environment=NODE_OPTIONS=--disable-warning=ExperimentalWarning
-ExecStart=/opt/reelish/node/bin/node node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3101
-Restart=always
-RestartSec=3
-# Hardening: read-only system, writable only where we need it.
-NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=true
-PrivateTmp=true
-ReadWritePaths=/var/lib/reelish /opt/reelish/current/.next/cache
-MemoryMax=768M
+Each change: `nginx -t` (also tested first on a throwaway copy of `/etc/nginx`), then `systemctl reload nginx`
+(not restart). DeepClean, www redirect, ViaFix and api.deepclean.app returned the same codes before and after.
 
-[Install]
-WantedBy=multi-user.target
-```
-
-`/etc/systemd/system/reelish-worker.service`: the same, except:
-```ini
-Description=Reelish background worker
-ExecStart=/opt/reelish/node/bin/node node_modules/tsx/dist/cli.mjs --conditions=react-server --disable-warning=ExperimentalWarning worker/index.ts
-KillSignal=SIGTERM
-TimeoutStopSec=30          # the worker gives running jobs 20 s, then they're recovered on start
-ReadWritePaths=/var/lib/reelish
-MemoryMax=512M
-```
-
-**Surviving restarts:**
-- Jobs and recipes live in the database file, not in either process.
-- The web process only inserts jobs, and the worker claims them atomically.
-- If the worker stops mid-job, the job keeps its `running` state. On the next start, jobs with no heartbeat for
-  30 s are requeued (attempts permitting), and cached paid results mean a retry doesn't pay twice. Integration tests
-  cover stale-job recovery, and a regression test (`0795ce4`) covers recipes surviving a restart.
-- Restarting `reelish-web` never affects the worker, and the reverse.
-- `Restart=always` brings either one back after a crash or a reboot.
-
-## Nginx (a new file only)
-
-`/etc/nginx/sites-available/reelish` (symlinked into `sites-enabled`; adjust to the server's layout). Zone names
-are prefixed `reelish_` so they can't clash with DeepClean's.
-
-```nginx
-limit_req_zone $binary_remote_addr zone=reelish_start:10m rate=6r/m;
-limit_req_zone $binary_remote_addr zone=reelish_all:10m  rate=10r/s;
-
-server {
-    listen 80;
-    server_name reelish.example.com;
-    location /.well-known/acme-challenge/ { root /var/www/reelish-acme; }
-    location / { return 301 https://$host$request_uri; }
-}
-
-server {
-    listen 443 ssl;
-    http2 on;
-    server_name reelish.example.com;
-    ssl_certificate     /etc/letsencrypt/live/reelish.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/reelish.example.com/privkey.pem;
-    add_header Strict-Transport-Security "max-age=31536000" always;
-    add_header X-Content-Type-Options nosniff always;
-    add_header Referrer-Policy strict-origin-when-cross-origin always;
-    client_max_body_size 16k;
-
-    proxy_set_header Host              $host;
-    proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $remote_addr;   # overwrite: never pass on client-supplied values
-    proxy_set_header X-Forwarded-Proto $scheme;
-
-    # Starting a job: tight per-IP limit at the edge (the app also limits per hour).
-    location ~ ^/(api/jobs|start)$ {
-        limit_req zone=reelish_start burst=5 nodelay;
-        limit_req_status 429;
-        proxy_pass http://127.0.0.1:3101;
-    }
-    location / {
-        limit_req zone=reelish_all burst=40 nodelay;
-        proxy_pass http://127.0.0.1:3101;
-    }
-}
-```
-
-`/api/jobs/<id>` (polling, about once a second) falls under `reelish_all` only, not the job-start limit.
-
-- **HTTPS:** `certbot certonly --webroot -w /var/www/reelish-acme -d reelish.example.com`. This only obtains a
-  certificate; certbot doesn't edit any Nginx file.
-  - First enable only the port-80 block, then add the 443 block once the certificate exists.
-  - Renewal uses the existing certbot timer. Check `certbot renew --dry-run`.
-- **Always run `nginx -t` before `systemctl reload nginx`.** Reload, not restart, so DeepClean's connections
-  aren't dropped.
-
-**Compatibility with the existing Nginx (check in step 0, before writing the file):**
-- **Default site.** If no server block has `default_server`, Nginx answers unknown hosts and bare-IP requests
-  with the first server block it loads for that port. Files load alphabetically, so `deepclean` stays ahead of
-  `reelish`, but confirm it. Reelish must never become the default.
-- **`http2 on;`** needs Nginx ≥ 1.25.1. On older versions, use `listen 443 ssl http2;` instead.
-- **Cloudflare or another proxy in front?** If DeepClean's DNS goes through Cloudflare and Reelish's does too,
-  `$remote_addr` is a Cloudflare address. Every visitor would then share one rate-limit bucket in Nginx *and* in
-  the app. In that case add `set_real_ip_from <Cloudflare ranges>; real_ip_header CF-Connecting-IP;` to the
-  Reelish server block only.
-- **Zone names:** `limit_req_zone` names live in one global namespace. Ours are prefixed `reelish_`; check
-  nothing else uses them (`nginx -T | grep limit_req_zone`).
-- **ACME directory** `/var/www/reelish-acme` is new and only used by this server block. Existing certbot
-  renewal hooks (usually `systemctl reload nginx`) work unchanged.
-
-## Spending limits (several layers)
-
-1. **OpenRouter:** a separate production key with a **credit limit** (say $5) set in the OpenRouter dashboard.
-   This is the hard ceiling, even if our code has a bug. (Checked 2026-11-22: the development key has a $20 limit
-   with $0.0858 used. Revoking either key doesn't affect the other.)
-2. **App:** `DAILY_AI_BUDGET_USD` (rolling 24 h) and `MAX_JOB_COST_USD` (per call). Calls are reserved at worst
-   case before they're made.
-3. **Supadata:** the free plan stops at 100 credits a month. The app's own daily, 30-day and per-job caps sit
-   below that. (Checked 2026-11-22 via `GET /v1/me`, which costs nothing: 24 of 100 used.) Only relevant if
-   Instagram is switched on.
-4. **YouTube Data API:** 10,000 units a day free; we use 1 per new video. Restrict the key to this API (and to
-   the server's IP if possible).
-5. **Per visitor:** Nginx `limit_req`, plus `RATE_LIMIT_PER_HOUR` per visitor (salted hash of the real IP).
-   Cache hits are free and not limited.
-
-When a cap is reached, new jobs end with the "limited" message. Nothing is charged, and cached recipes keep
-working.
-
-## Many visitors at once
-- Each submission is a row in `jobs`. Submitting the same video again joins the same job (unique index), and an
-  already-made recipe returns at once with no job.
-- **One worker, 2 jobs at a time.** A job takes about 5–18 s, so expect roughly 7–20 new recipes a minute. Later
-  visitors see the "queued" state and wait. Ten new videos at once means up to about a minute for the last one.
-- Supadata's free plan allows 1 request per second. Calls are spaced in-process, and a 429 is retried with
-  backoff.
-- SQLite in WAL mode with a 5 s busy timeout. Writes are tiny and both processes share one file. That's fine at
-  this scale. If it ever isn't, the move is PostgreSQL behind `lib/db/` (decision D7).
-- **Risk:** if the worker is down or stuck, jobs queue silently.
-  - `Restart=always` covers crashes.
-  - A job that hangs is aborted at 180–240 s and recovered.
-  - A worker that is alive but not claiming jobs is caught by the health timer below.
-
-### Health monitoring (proposed)
-- **`reelish-health.timer`** runs every 5 minutes as root and calls `/opt/reelish/health.sh`, which:
-  1. curls `http://127.0.0.1:3101/r/yt-healthcheck`, expecting 404 (app and database);
-  2. reads the oldest queued job's age with the read-only query below. If it's over 3 minutes, it runs
-     `systemctl restart reelish-worker` and logs `reelish_health worker_restarted` to journald.
-
-  It only ever touches `reelish-*` units.
-- **External uptime check** (for example a free UptimeRobot monitor) on `https://reelish.example.com/`, so an
-  outage alerts you even if the VPS itself is down.
+**Not done:** HSTS. It's a host-wide header and would affect DeepClean, so it's DeepClean's call.
 
 ## Commands
 
 ```bash
 # Status and logs
 systemctl status reelish-web reelish-worker
-journalctl -u reelish-worker -f            # JSON lines: job_started / job_succeeded / job_failed …
-journalctl -u reelish-web --since "1 hour ago"
+journalctl -u reelish-worker -f                # job_started / job_succeeded / job_failed …
 
-# Health (all should pass)
-curl -fsS -o /dev/null -w '%{http_code}\n' https://reelish.example.com/                  # 200
-curl -s  -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3101/r/yt-healthcheck         # 404 = app and database OK (500 = database problem)
-systemctl is-active reelish-worker                                                       # active
-sudo -u reelish /opt/reelish/node/bin/node -e '
+# Health
+curl -s -o /dev/null -w '%{http_code}\n' https://deepclean.app/reelish                        # 200
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3101/reelish/r/yt-healthcheck      # 404 = app + DB OK
+systemctl list-timers | grep reelish          # reelish-health (5 min), reelish-backup (daily)
+
+# Spend in the last 24 h
+sudo runuser -u reelish -- /opt/reelish/node/bin/node -e '
   const db = new (require("node:sqlite").DatabaseSync)("/var/lib/reelish/reelish.db", { readOnly: true });
-  console.log(db.prepare("SELECT COUNT(*) n, MIN(created_at) oldest FROM jobs WHERE status = ?").get("queued"));
   console.log(db.prepare("SELECT ROUND(SUM(cost_usd),4) usd FROM processing_runs WHERE created_at > ?").get(Date.now() - 864e5));'
-# A queued job older than ~2 minutes means the worker isn't processing.
 
-# Restart (either one alone is safe)
-sudo systemctl restart reelish-worker
-sudo systemctl restart reelish-web
+# Instagram off/on (e.g. if Meta or a creator objects)
+sudo sed -i 's/^INSTAGRAM_ENABLED=.*/INSTAGRAM_ENABLED=false/' /etc/reelish/env
+sudo systemctl restart reelish-web reelish-worker
 ```
 
-### Deploying a release
+`reelish-health.timer` (root, every 5 min, `/opt/reelish/health.sh`) restarts `reelish-web` if the health URL
+doesn't return 404, and `reelish-worker` if a job has been queued for over 3 minutes. It only touches
+`reelish-*` units. An external uptime monitor (for example UptimeRobot on `https://deepclean.app/reelish`) is
+still worth adding.
+
+## Deploying a release
+
 ```bash
-sudo -u reelish bash -c '
-  set -e
-  cd /opt/reelish/releases
-  git clone --depth 1 <repo> "$SHA" && cd "$SHA" && git checkout "$SHA"
-  test ! -e .env && test ! -e .env.local
-  export PATH=/opt/reelish/node/bin:$PATH
-  npm ci
-  npm run build'
-sudo -u reelish /opt/reelish/node/bin/node /opt/reelish/backup.mjs   # backup before switching
-sudo ln -sfn /opt/reelish/releases/$SHA /opt/reelish/current
-sudo systemctl restart reelish-worker reelish-web
-# then run the health checks
+# On the Mac (Node 22): build, then copy
+REELISH_BASE_PATH=/reelish scripts/package-release.sh          # → release/reelish-<sha>.tar.gz
+scp release/reelish-<sha>.tar.gz deepclean:/tmp/
+
+# On the server
+cd /opt/reelish/releases && tar -xzf /tmp/reelish-<sha>.tar.gz && mv reelish-<sha> <sha>
+chown -R root:root <sha> && install -d -o reelish -g reelish <sha>/.next/cache
+find <sha> -name '.env*' -o -name '*.db'                        # must print nothing
+systemctl start reelish-backup.service                         # backup before switching
+ln -sfn /opt/reelish/releases/<sha> /opt/reelish/current
+systemctl restart reelish-worker reelish-web
 ```
 
-### Rollback (touches only Reelish)
-```bash
-# To the previous release:
-sudo ln -sfn /opt/reelish/releases/<previous-sha> /opt/reelish/current
-sudo systemctl restart reelish-worker reelish-web
+**Rollback:** point `current` at the previous release and restart both units. **Take Reelish offline:**
+`systemctl disable --now reelish-web reelish-worker reelish-health.timer reelish-backup.timer`, remove the
+`include snippets/reelish.conf;` line, `nginx -t && systemctl reload nginx`. Nothing here names a DeepClean file
+or unit.
 
-# Take Reelish offline entirely (e.g. the first deploy goes wrong):
-sudo systemctl disable --now reelish-web reelish-worker reelish-health.timer
-sudo rm /etc/nginx/sites-enabled/reelish && sudo nginx -t && sudo systemctl reload nginx
-```
-- None of these commands names a DeepClean file or unit.
-- After any Nginx change, check DeepClean still answers: `curl -sI https://deepclean.app | head -1`.
-- Database changes so far are additive (new columns only), so an older release runs against a newer database.
-- If a future release changes the schema in a way that isn't additive, restore the pre-deploy backup with both
-  services stopped.
+**Restore a backup:** stop both units, copy the backup over `reelish.db`, delete `reelish.db-wal` and
+`reelish.db-shm`, start both. The database holds no accounts or personal data, only recipes, jobs, cached
+creator text and salted IP hashes.
 
-### Backups
-`/opt/reelish/backup.mjs` (owned by root, run by a daily systemd timer as `reelish`) makes a consistent online
-copy, even with WAL:
-```js
-import { DatabaseSync } from "node:sqlite";
-const out = `/var/backups/reelish/reelish-${new Date().toISOString().slice(0, 10)}.db`;
-new DatabaseSync("/var/lib/reelish/reelish.db").exec(`VACUUM INTO '${out}'`);
-```
-- Prune with `find /var/backups/reelish -name 'reelish-*.db' -mtime +14 -delete`.
-- **Restore:** stop both services, copy the backup over `reelish.db`, delete `reelish.db-wal` and
-  `reelish.db-shm`, then start both.
-- The database holds no user accounts or personal data, only recipes, jobs, cached creator text and hashed IP
-  buckets. Losing it costs re-processing, not user data.
+## Verified on the live site (2026-11-21)
 
-## Deployment-specific assumptions found in the code
+See `docs/submission/TEST-REPORT.md` → "Production smoke test". In short: 42/42 browser checks on desktop and
+mobile, cache hits free, worker SIGKILL mid-job recovered, budget cap and both rate limits trigger, other sites
+unaffected.
 
-| Assumption | Status |
-|---|---|
-| `/start` (no-JS form) redirected to an absolute URL built from `request.url`, which is `localhost:3101` behind Nginx | **Fixed** (`d0d4ed6`): relative `Location`. Found by testing the production build with proxy headers |
-| The rate limit took the *first* `X-Forwarded-For` entry, which visitors can forge | **Fixed** (`f473083`): `X-Real-IP` or the last entry; Nginx overwrites both |
-| Without `TRUST_PROXY`, every visitor shares one rate-limit bucket | Set `TRUST_PROXY=true` behind our Nginx only |
-| Missing keys quietly switch the app to the fixtures demo | Set `REELISH_PIPELINE=live`, so a missing key makes jobs fail (`job_failed` in the log) instead. Check that the keys are present before the first start |
-| The database path defaults to `./data/` in the working directory, which is inside the release | Set `REELISH_DB_PATH` |
-| `next start` binds every interface | `-H 127.0.0.1` in the unit; also check the firewall |
-| `ReelishBot/0.1` user agent has no contact URL | Open (`PLATFORM-CONSTRAINTS.md`); add one before launch |
-| The worker loads `.env`/`.env.local` from its working directory | Release check: no `.env*` files |
-| Node 22 needed, system Node may be older | Separate Node in `/opt/reelish/node` |
-| Secrets must stay on the server | Checked 2026-11-22: the production build's browser files (`.next/static`, 36 files) contain no key values or key names. Keys are read only in `lib/env.ts` (`server-only`) |
+## Known limits of this setup
 
-## What we'll inspect first (read-only, step 0)
-
-`uname -a; lsb_release -a; free -m; df -h; nproc` ·
-`node -v; which node` (and what DeepClean's unit uses) ·
-`systemctl list-units --type=service | grep -i -E 'deepclean|node|nginx'` ·
-`ss -ltnp` (free ports, nothing on 3101) ·
-`nginx -v; nginx -T | grep -E 'server_name|listen|default_server|include|limit_req_zone|real_ip'` ·
-whether DeepClean is behind Cloudflare (`curl -sI https://deepclean.app | grep -i -E 'server|cf-ray'`) ·
-`ls /etc/letsencrypt/live; systemctl list-timers | grep certbot` ·
-`ufw status` or `iptables -S` ·
-DNS: `dig +short reelish.example.com`.
+- **One worker, 2 jobs at a time**, about 7–20 new recipes a minute. More visitors wait in "queued".
+- SQLite is fine at this scale; the move beyond it is PostgreSQL behind `lib/db/` (decision D7).
+- The disk is 83% full (shared). Each release is ~51 MB; delete old ones from `/opt/reelish/releases`.
+- If the whole droplet goes down, nothing alerts you until an external uptime check is added.

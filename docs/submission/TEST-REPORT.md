@@ -1,7 +1,8 @@
 # Reelish test report
 
-Ten real links, processed by the live pipeline on 2026-11-21. The full scoring notes are in
-`docs/M4-EVALUATION.md`; this is the summary.
+Ten real links processed by the live pipeline during development on 2026-11-21 (#1–10), one over-length
+video (#11, F3), and a production smoke test on the deployed site (<https://deepclean.app/reelish>). The full
+scoring notes for #1–10 are in `docs/M4-EVALUATION.md`; this is the summary.
 
 **Expected result** means what the creator's own published information supports (a description, a caption or
 a linked recipe page). It's not a prediction written before the run. Where there is no written recipe, the
@@ -24,8 +25,13 @@ to watch the video.
 | 8 | [IG Reel: turkey](https://www.instagram.com/reel/DPeUV0GjQnF/) (caption links the recipe) | Complete | Complete; wording issues | 11/11 | 11/11 | All 16 | Yes | 12.9 s | $0.0101 + 1 credit |
 | 9 | Same Reel, recipe link blocked (transcript only) | Partial | Partial; no temperature or time, listed as gaps | 8 of the blog's 11 | 0 invented | 8 | No | 9.1 s | $0.0052 + 1 credit |
 | 10 | `instagram.com/reel/DZq9xYwVbN0` (doesn't exist) | Can't open | "We can't open this video", no AI call | – | – | – | Correct | 4.3 s | $0 |
+| 11 | [YT 2:22:17 stream](https://www.youtube.com/watch?v=kazwMSkeoSQ) (F3, 8,537 s) | Refused as too long, no AI call | "This video is too long"; metadata failed, later stages never ran | – | – | – | Correct | 0.25 s | $0 |
 
-**Technical success:** 10/10. Every link was processed or refused correctly.
+**Technical success:** 11/11. Every link was processed or refused correctly.
+- #11 ran on 2026-11-22 against the release build with `OPENROUTER_BASE_URL` pointed at a dead local port, so
+  an AI call was impossible even by mistake. The database recorded one run at $0.00.
+- The other planned fresh runs (F1 Food52 13-minute video, F2 no-talking ASMR video, F4 a Reel from another
+  creator) were **not run**, by decision, to ship.
 **Extraction:** on the four recipes with a written source, 49/49 ingredients and 45/45 amounts match. No
 quantities were invented anywhere.
 **Cooking usability (reviewer judgment, not observed):**
@@ -78,17 +84,65 @@ Regression tests run on the saved real model answers, not only synthetic data.
   exceptions are 5-ingredient steps at 1024×768, where the fifth row sits just below the buttons.
 - No axe violations (including with "Already added" open), no overflow, no console errors.
 
-**Checks:** 245 unit and integration tests, and 23 e2e journeys with axe on phone and desktop (fixture data),
-plus the production build.
+**Checks (re-run 2026-11-22 before deploying):** lint, typecheck, 245 unit and integration tests, 23 e2e
+journeys with axe on phone and desktop (fixture data, 1 phone-only test skipped on desktop), and the production
+build.
+
+## Production smoke test (deployed site, 2026-11-21 19:40–19:52 UTC)
+
+Run against `https://deepclean.app/reelish` (release `4d6083c`), not localhost.
+
+**Browser checks:** `node scripts/smoke-prod.mjs` (Chromium, desktop 1280×860 and Pixel 7). **42/42 passed**
+on the final run:
+- landing over HTTPS, no axe violations, no horizontal overflow;
+- TikTok link refused inline;
+- paste → progress (4 stages) → overview → Cook Mode → finish;
+- ingredient check-off and Cook Mode step survive a reload;
+- a recipe with no amounts shows each one as "Not specified"; a user amount persists after reload, and removing
+  it restores "Not specified";
+- unknown recipe → 404 page;
+- no console errors.
+
+The first runs failed on the script's own selectors (live recipe ids carry a version suffix; the live soup says
+"Chicken or veggie broth"), not on the app. Screenshots are in `docs/screenshots/production/`.
+
+**Jobs on the live server** (times from the jobs table, costs from `processing_runs`):
+
+| Link | Result | Time | AI cost | Supadata |
+|---|---|---|---|---|
+| YT soup `VTR8vxBFGDY` | Recipe: 13 ingredients, 11 with amounts (chives and bacon bits "Not specified", as in #1), 8 steps | 13.2 s | $0.0094 | – |
+| YT Kaju Katli `s4na199iyag` | Partial: 5 ingredients, all "Not specified" (as in #2), 9 steps | 6.7 s | $0.0077 | – |
+| IG pasta salad `DWZqrugEacU` | Recipe from the caption, status complete (not re-scored against #6) | 7.6 s | $0.0059 | 1 credit |
+| YT music video `dQw4w9WgXcQ` | "Doesn't look like a recipe" (after a forced worker kill, below) | 40.9 s | $0.0018 | – |
+| `watch?v=privateDemo` | "We can't open this video" | 0.3 s | $0 | – |
+| YT carbonara `3AAdKl1UYZs` | "Limited": budget cap deliberately set to $0.001 for this test | 4.2 s | $0 | – |
+| Same soup link again | Returned the existing recipe id at once, no job | 0.2 s | $0 | – |
+
+**Infrastructure checks:**
+- **Worker crash:** `SIGKILL` 3 s into the music-video job. systemd restarted the worker 3 s later. After the
+  30 s heartbeat timeout the job was requeued (`jobs_recovered`) and finished on attempt 2. A graceful restart
+  (SIGTERM) during the Instagram job let the job finish first.
+- **Web and worker restart:** all three recipes still returned 200 afterwards.
+- **Rate limits:** Nginx returned 429 when job starts came faster than its 6/min edge limit. The app returned
+  `rate_limited` on the 7th new video from one visitor within an hour. Cached recipes aren't limited.
+- **Spending:** the $0.001 budget test stopped before any AI call; the cap was restored to $0.50.
+- **Health:** `reelish-health.timer` (5 min) and `reelish-backup.timer` (daily) active; a backup was written.
+- **DeepClean.app** and ViaFix returned 200 before and after every Nginx change. All other services stayed
+  active. Reelish used ~55 MB (web) + ~24 MB (worker).
+
+**Cost reconciliation:** the OpenRouter key's usage went from $0.0858 to $0.1106 (**+$0.0248**). The
+`processing_runs` ledger sums to exactly $0.0248. So the AI call cut off by `SIGKILL` (left as "reserved") was
+not billed. Supadata went from 24 to 25 credits (+1).
 
 ## Not covered
-- Videos over 6 minutes.
-- A real minimal-speech video.
-- Instagram from any creator other than @themodernnonna.
+- Videos over 6 minutes that we'd process (F1 not run; only the over-length refusal, #11).
+- A real minimal-speech video (F2 not run).
+- Instagram from any creator other than @themodernnonna (F4 not run).
 - Instagram's visual-notes path (mocked tests only).
 - A real private or removed video.
-- Repeat-run consistency through the current pipeline.
-- Fresh runs F1–F4 (planned, waiting for approval; F4 needs a Reel link).
-- **Any observed human cooking session.**
+- Repeat-run consistency through the current pipeline. The production soup and Kaju Katli runs matched #1 and
+  #2 at the level checked above (ingredient count and which amounts are missing), but their steps weren't
+  re-scored.
+- **Any observed human cooking session.** The observation sheet is in `docs/USABILITY-TEST.md`.
 
-Proposed fresh runs and their cost are in `docs/M4-EVALUATION.md`.
+The proposed fresh runs and their cost are in `docs/M4-EVALUATION.md`.

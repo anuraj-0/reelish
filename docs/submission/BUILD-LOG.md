@@ -12,9 +12,21 @@
   - YouTube Data API;
   - Supadata (Instagram).
 - **Feasibility spike:** Python scripts (`spike/`).
+- **Deployment:** Next.js standalone output, esbuild (one-file worker bundle), systemd, Nginx, existing Let's
+  Encrypt certificate, a DigitalOcean droplet shared with DeepClean.app.
 
 ## Time
-**Not measured.** We didn't track working time.
+**Not measured with a timer. Estimate: about 6–8 hours in total.**
+
+How the estimate was made:
+- The three Claude Code transcripts have message timestamps from 21 Nov 2026 17:33 IST to 22 Nov 01:22 IST.
+  Counting only stretches with no gap over 15 minutes gives **about 6.0 hours of active session time**:
+  - 4.4 h spike through M3,
+  - 0.7 h M4 review,
+  - about 0.7 h, plus the docs time after this was written, deployment.
+- That is session time, not the person's effort. Claude worked for long stretches inside single turns, and
+  some time was spent outside the sessions (accounts and API keys, reading outputs, decisions).
+  The 6–8 h range allows for that, but it's a judgment, not a measurement.
 
 What the repository shows:
 - 21 November 2026: commits run from 18:24 to 23:44 IST (milestones M0–M3), with a gap between about 20:10 and
@@ -26,7 +38,7 @@ That's a range of commit times, not hours worked:
 - Much of the work was done by Claude Code in long-running turns, so the span doesn't reflect the person's own
   effort either.
 
-*(Fill in your own estimate of the hours you spent, and say it's an estimate.)*
+*(Adjust the range if your own memory of time outside the sessions differs.)*
 
 ## Where AI helped
 *(Both examples come from the commit history and the M3/M4 docs. Check that they match how you remember
@@ -52,7 +64,13 @@ the sessions before you submit.)*
 **The lesson:** "all tests pass" said nothing about the environment the tests didn't model. The fix was to test
 the deployed shape (built app, proxy headers), not to write more tests of the same kind.
 
-A smaller one from M3:
+A smaller one from the deployment day:
+- Unknown recipe links returned 500 behind Nginx. Claude's first fix, a code workaround based on a misreading of
+  Next.js internals, didn't work and cost three rebuilds.
+- The real fix was one Nginx line: stop sending `X-Forwarded-Proto`, which Reelish never used. It was found by
+  reproducing the request with and without each header.
+
+Another from M3:
 - A link-scoring change let the line "his new book: http://…" inherit the "Recipe here:" context from the line
   above.
 - The regression was caught and fixed in the same session: a line that holds its own link no longer gives

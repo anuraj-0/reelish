@@ -3,7 +3,13 @@
 What each external source allows, what we rely on, and what is still unresolved. Status as of 2026-11-21.
 This is an engineering summary, not legal advice. Items marked **open** need a decision before a public launch.
 
-## Instagram via Supadata: open
+## Instagram via Supadata: open (enabled publicly by owner decision, 2026-11-21)
+
+> **Deployment decision (2026-11-21):** the owner chose to accept the risk below and run
+> `INSTAGRAM_ENABLED=true` on the public site (<https://deepclean.app/reelish>). This is a **risk acceptance,
+> not an authorization**: we still have no permission from Meta/Instagram or from the creators, and paying
+> Supadata doesn't provide one. The permission question stays open. Switching it off takes one env change and a
+> restart (`docs/DEPLOYMENT.md`).
 
 - **What we use:**
   - Supadata's `metadata` endpoint (caption, author, duration), its `transcript` endpoint, and, rarely, its
@@ -18,9 +24,8 @@ This is an engineering summary, not legal advice. Items marked **open** need a d
   - **We have no permission from Instagram/Meta or from the creators** to process their Reels. Successful tests,
     a small audience or a "beta" label don't change that. Our tests show the integration *works*, not that it
     is *allowed*.
-  - Turning Instagram on for public visitors is a risk the owner decides to accept (or not) before deployment;
-    it is not resolved by anything in this codebase. Until that decision, deploy with `INSTAGRAM_ENABLED=false`
-    (the saved examples keep working).
+  - Turning Instagram on for public visitors is a risk the owner decides to accept (or not); it is not resolved
+    by anything in this codebase. The owner accepted it for the deployment on 2026-11-21 (see the note above).
 - **How we limit exposure:**
   - Public Reels only.
   - Creator text first; paid transcript or visual steps only when needed.
@@ -49,9 +54,9 @@ Not read: the Instagram Terms of Use and the "Meta oEmbed Read" feature page.
 
 ### What we can responsibly make public
 - **YouTube:** yes (official Data API, plus Gemini's YouTube-URL input; see below).
-- **Instagram, as built (Supadata):** **not without an explicit owner decision to accept the risk.** The
-  recommended production setting is `INSTAGRAM_ENABLED=false`. The built-in examples (fixtures) keep working,
-  so the feature is demonstrable.
+- **Instagram, as built (Supadata):** **not without an explicit owner decision to accept the risk.** That
+  decision was made for the 2026-11-21 deployment, so Instagram is on. Without it, the setting would be
+  `INSTAGRAM_ENABLED=false`, with only the built-in examples (fixtures) working.
 - **Options that don't rely on scraping, and are not built:**
   1. The person pastes the Reel's caption text themselves, alongside the link. The text comes from the user;
      we credit and link the creator.
@@ -65,9 +70,10 @@ Not read: the Instagram Terms of Use and the "Meta oEmbed Read" feature page.
   - All Supadata code lives in `lib/sources/instagram/supadata.ts`, behind the `InstagramProvider` interface
     (`lib/sources/instagram/types.ts`).
   - `INSTAGRAM_ENABLED=false` switches Instagram off; only the saved examples keep working.
-- **Reliability:** free plan of 100 credits a month at 1 request per second. Our caps:
-  - `SUPADATA_DAILY_CREDITS` (25),
-  - `SUPADATA_MONTHLY_CREDITS` (90, a rolling 30 days),
+- **Reliability:** free plan of 100 credits a month at 1 request per second. Our caps (defaults; production
+  values in brackets):
+  - `SUPADATA_DAILY_CREDITS` (25; production 10),
+  - `SUPADATA_MONTHLY_CREDITS` (90, a rolling 30 days; production 60),
   - `SUPADATA_MAX_JOB_CREDITS` (12).
 
   Whether failed calls are billed isn't documented; we count them at worst case. Observed: a 404 lookup was
