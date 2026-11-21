@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
+import { io } from "next/cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { RecipeOverview } from "@/components/recipe/recipe-overview";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getFixtureRecipe } from "@/lib/fixtures";
+import { getRecipe } from "@/lib/jobs/service";
 
 export async function generateMetadata({ params }: PageProps<"/r/[id]">): Promise<Metadata> {
   const { id } = await params;
-  return { title: getFixtureRecipe(id)?.title ?? "Recipe" };
+  await io(); // synchronous database read follows
+  return { title: getRecipe(id)?.title ?? "Recipe" };
 }
 
 export default function RecipePage({ params }: PageProps<"/r/[id]">) {
   return (
     <Suspense fallback={<RecipeSkeleton />}>
-      {params.then(({ id }) => {
-        // M1: saved test recipes. M2 reads from the database.
-        const recipe = getFixtureRecipe(id);
+      {params.then(async ({ id }) => {
+        await io();
+        const recipe = getRecipe(id);
         if (!recipe) notFound();
         return <RecipeOverview recipe={recipe} />;
       })}

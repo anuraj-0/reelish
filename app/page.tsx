@@ -1,6 +1,7 @@
 import { BookOpenCheck, CircleHelp, MonitorSmartphone } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { StartForm, type Example } from "@/components/start-form";
+import { pipelineMode } from "@/lib/env";
 import { DEMO_UNAVAILABLE_ID } from "@/lib/jobs/mock";
 
 const EXAMPLES: Example[] = [
@@ -32,7 +33,14 @@ export default function Home() {
           honestly when something wasn&apos;t said.
         </p>
         <div className="mt-8">
-          <StartForm examples={EXAMPLES} />
+          <StartForm
+            examples={EXAMPLES}
+            note={
+              pipelineMode() === "live"
+                ? "YouTube links are read live. The Instagram examples use saved test recipes until Instagram support arrives."
+                : "This preview runs on saved test recipes. Live processing is switched off."
+            }
+          />
         </div>
         <ul className="mt-14 grid gap-6 border-t pt-8 sm:grid-cols-3">
           {POINTS.map(({ icon: Icon, title, body }) => (

@@ -36,7 +36,7 @@ export function JobProgress({ jobId }: { jobId: string }) {
           router.replace(`/r/${job.recipeId}`);
           return;
         }
-        if (job.status === "running") timer = setTimeout(tick, POLL_MS);
+        if (job.status === "running" || job.status === "queued") timer = setTimeout(tick, POLL_MS);
       } catch {
         if (stop) return;
         setData({ kind: "offline" });
@@ -67,7 +67,8 @@ export function JobProgress({ jobId }: { jobId: string }) {
     return (
       <State title={text.title} body={text.body}>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button asChild size="xl">
+          {text.retry ? <RetryButton url={job.sourceUrl} /> : null}
+          <Button asChild size="xl" variant={text.retry ? "outline" : "default"}>
             <Link href="/">Try another link</Link>
           </Button>
           <Button asChild size="xl" variant="outline">
@@ -95,7 +96,9 @@ export function JobProgress({ jobId }: { jobId: string }) {
             ? "Connection lost. We'll keep checking; your recipe is still being made."
             : active
               ? `${STAGE_LABEL[active.key]}…`
-              : "Starting…"}
+              : job?.status === "queued"
+                ? "Waiting to start…"
+                : "Starting…"}
         </p>
       </div>
       {job ? <StageList job={job} /> : <div className="h-40" aria-hidden />}
@@ -110,6 +113,42 @@ export function JobProgress({ jobId }: { jobId: string }) {
         <Link href="/">Cancel</Link>
       </Button>
     </div>
+  );
+}
+
+/** Starts a fresh job for the same video. The server joins an existing one instead of duplicating it. */
+function RetryButton({ url }: { url: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  return (
+    <>
+      <Button
+        size="xl"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          setFailed(false);
+          try {
+            const res = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+            const body = (await res.json()) as { jobId?: string; recipeId?: string };
+            if (body.recipeId) return router.replace(`/r/${body.recipeId}`);
+            if (body.jobId) return router.replace(`/jobs/${body.jobId}`);
+            throw new Error("no job");
+          } catch {
+            setFailed(true);
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? <Loader2 className="animate-spin" aria-hidden /> : null} Try again
+      </Button>
+      {failed ? (
+        <p role="alert" className="text-sm text-destructive sm:self-center">
+          Couldn&apos;t start again. Please wait a moment.
+        </p>
+      ) : null}
+    </>
   );
 }
 

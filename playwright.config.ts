@@ -20,7 +20,8 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"], channel: "chromium", viewport: { width: 1280, height: 860 } } },
   ],
   webServer: {
-    command: `npx next dev --port ${PORT}`,
+    // Offline: saved fixtures only, never live APIs (even if keys are configured).
+    command: `REELISH_PIPELINE=fixtures NODE_OPTIONS=--disable-warning=ExperimentalWarning npx next dev --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
     timeout: 120_000,

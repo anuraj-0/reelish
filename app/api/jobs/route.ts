@@ -1,6 +1,5 @@
-import { createMockJob } from "@/lib/jobs/mock";
+import { clientHash, startJob } from "@/lib/jobs/service";
 import { CreateJobInput } from "@/lib/jobs/types";
-import { parseVideoUrl } from "@/lib/url";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -12,10 +11,7 @@ export async function POST(request: Request) {
   const input = CreateJobInput.safeParse(body);
   if (!input.success) return Response.json({ error: "invalid" }, { status: 400 });
 
-  const parsed = parseVideoUrl(input.data.url);
-  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: 400 });
-
-  // M1: simulated job over saved recipes. M2 swaps in the persisted queue.
-  const jobId = createMockJob(parsed.value);
-  return Response.json({ jobId }, { status: 202 });
+  // Creates (or joins) a persisted job and returns at once; the worker does the processing.
+  const result = startJob(input.data.url, clientHash(request.headers));
+  return Response.json(result.body, { status: result.status, headers: { "Cache-Control": "no-store" } });
 }

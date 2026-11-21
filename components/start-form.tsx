@@ -5,11 +5,18 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { START_ERROR_TEXT, type StartError } from "@/lib/jobs/types";
 import { parseVideoUrl, URL_ERROR_TEXT, type UrlError } from "@/lib/url";
 
 export type Example = { url: string; title: string; detail: string; platform: string };
 
-export function StartForm({ examples }: { examples: Example[] }) {
+function errorText(code: string | undefined): string {
+  if (code && code in URL_ERROR_TEXT) return URL_ERROR_TEXT[code as UrlError];
+  if (code && code in START_ERROR_TEXT) return START_ERROR_TEXT[code as StartError];
+  return "Something went wrong. Please try again.";
+}
+
+export function StartForm({ examples, note }: { examples: Example[]; note: string }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +40,11 @@ export function StartForm({ examples }: { examples: Example[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: value }),
       });
-      const body = (await res.json().catch(() => ({}))) as { jobId?: string; error?: UrlError };
+      const body = (await res.json().catch(() => ({}))) as { jobId?: string; recipeId?: string; error?: string };
+      // Already made: go straight to the recipe.
+      if (res.ok && body.recipeId) return router.push(`/r/${body.recipeId}`);
       if (!res.ok || !body.jobId) {
-        setError(body.error && body.error in URL_ERROR_TEXT ? URL_ERROR_TEXT[body.error] : "Something went wrong. Please try again.");
+        setError(errorText(body.error));
         setSubmitting(null);
         return;
       }
@@ -93,9 +102,7 @@ export function StartForm({ examples }: { examples: Example[] }) {
           <h2 id="examples-heading" className="text-lg font-semibold">
             Try an example
           </h2>
-          <p className="text-sm text-muted-foreground">
-            This preview runs on saved test recipes. Live YouTube and Instagram processing comes next.
-          </p>
+          <p className="text-sm text-muted-foreground">{note}</p>
         </div>
         <ul className="grid gap-2 sm:grid-cols-2">
           {examples.map((ex) => (
