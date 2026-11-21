@@ -392,6 +392,18 @@ Each milestone ends with something working, plus tests.
 
 ---
 
+## 5a. As built in M1 (differences from the sketch above)
+
+- Processing has its own page, `/jobs/[id]`, which replaces itself with `/r/[id]` on success. The recipe
+  URL stays clean and shareable, and a cache hit can skip the job page entirely.
+- User edits cover **quantity corrections** (`RecipeEdits.quantities`), not adding new ingredients.
+  Edits, checked ingredients and Cook Mode position live in localStorage per recipe.
+- `Recipe` gained `notes` (creator tips, with evidence) and `prepTime`/`cookTime` alongside `totalTime`.
+- Steps carry no quantities in their text; Cook Mode shows amounts from the step's `ingredientIds`, so
+  a user's edit appears everywhere at once.
+- The "missing amounts" banner counts required ingredients only; optional garnishes still show
+  "Not specified" in their row.
+
 ## 6. Decisions (resolved 2026-11-21)
 
 | # | Decision |
