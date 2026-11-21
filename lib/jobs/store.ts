@@ -7,6 +7,11 @@ import { JobErrorCode, type JobStatus, type StageKey } from "./types";
 
 /** Bump to reprocess videos lazily after a pipeline change (old recipes stay readable). */
 export const PIPELINE_VERSION = "yt-1";
+export const INSTAGRAM_PIPELINE_VERSION = "ig-1";
+
+export function pipelineVersionFor(videoKey: string): string {
+  return videoKey.startsWith("instagram:") ? INSTAGRAM_PIPELINE_VERSION : PIPELINE_VERSION;
+}
 export const MAX_ATTEMPTS = 2;
 
 export type StageState = JobStatus["stages"][number]["state"];
@@ -43,7 +48,7 @@ export function insertJob(db: Db, input: { parsed: ParsedVideoUrl; stages: Stage
     input.parsed.platform,
     input.parsed.videoId,
     input.parsed.canonicalUrl,
-    PIPELINE_VERSION,
+    pipelineVersionFor(input.parsed.key),
     JSON.stringify(input.stages.map((key) => ({ key, state: "pending" }))),
     MAX_ATTEMPTS,
     input.clientHash,
@@ -70,10 +75,10 @@ export function findReusableFailure(db: Db, videoKey: string, now = Date.now()):
     (db
       .prepare(
         `SELECT * FROM jobs WHERE video_key = ? AND pipeline_version = ? AND status = 'failed' AND (
-           (error_code IN ('not_a_recipe', 'too_long') AND finished_at > ?) OR (error_code = 'unavailable' AND finished_at > ?)
+           (error_code IN ('not_a_recipe', 'too_long', 'not_a_video') AND finished_at > ?) OR (error_code = 'unavailable' AND finished_at > ?)
          ) ORDER BY finished_at DESC LIMIT 1`,
       )
-      .get(videoKey, PIPELINE_VERSION, now - 86_400_000, now - 3_600_000) as JobRow | undefined) ?? null
+      .get(videoKey, pipelineVersionFor(videoKey), now - 86_400_000, now - 3_600_000) as JobRow | undefined) ?? null
   );
 }
 
@@ -108,6 +113,15 @@ export function setStageState(db: Db, id: string, key: StageKey, state: StageSta
     if (!row) return;
     const stages = readStages(row).map((s) => (s.key === key ? { ...s, state } : s));
     db.prepare("UPDATE jobs SET stages = ? WHERE id = ?").run(JSON.stringify(stages), id);
+  });
+}
+
+/** Drops a stage this job decided not to run (e.g. no transcript needed), so it isn't shown as pending. */
+export function removeStage(db: Db, id: string, key: StageKey) {
+  transaction(db, () => {
+    const row = db.prepare("SELECT stages FROM jobs WHERE id = ?").get(id) as { stages: string } | undefined;
+    if (!row) return;
+    db.prepare("UPDATE jobs SET stages = ? WHERE id = ?").run(JSON.stringify(readStages(row).filter((s) => s.key !== key)), id);
   });
 }
 
@@ -190,7 +204,7 @@ export function getStoredRecipe(db: Db, id: string): Recipe | null {
 export function findRecipeIdForVideo(db: Db, videoKey: string): string | null {
   const row = db
     .prepare("SELECT id FROM recipes WHERE video_key = ? AND pipeline_version = ? ORDER BY created_at DESC LIMIT 1")
-    .get(videoKey, PIPELINE_VERSION) as { id: string } | undefined;
+    .get(videoKey, pipelineVersionFor(videoKey)) as { id: string } | undefined;
   return row?.id ?? null;
 }
 
@@ -205,6 +219,8 @@ export type RunFields = {
   inputTokens?: number | null;
   outputTokens?: number | null;
   costUsd?: number | null;
+  /** Supadata credits actually billed (x-billable-requests). */
+  credits?: number | null;
   detail?: unknown;
 };
 
@@ -213,12 +229,12 @@ export function recordRun(db: Db, jobId: string, stage: string, f: RunFields, re
   const detail = f.detail === undefined ? null : redact(JSON.stringify(f.detail)).slice(0, 4000);
   if (reservedId !== undefined) {
     db.prepare(
-      `UPDATE processing_runs SET status = ?, error_code = ?, latency_ms = ?, input_tokens = ?, output_tokens = ?, cost_usd = ?, model = COALESCE(?, model), detail = ? WHERE id = ?`,
-    ).run(f.status, f.errorCode ?? null, f.latencyMs ?? null, f.inputTokens ?? null, f.outputTokens ?? null, f.costUsd ?? null, f.model ?? null, detail, reservedId);
+      `UPDATE processing_runs SET status = ?, error_code = ?, latency_ms = ?, input_tokens = ?, output_tokens = ?, cost_usd = ?, credits = COALESCE(?, credits), model = COALESCE(?, model), detail = ? WHERE id = ?`,
+    ).run(f.status, f.errorCode ?? null, f.latencyMs ?? null, f.inputTokens ?? null, f.outputTokens ?? null, f.costUsd ?? null, f.credits ?? null, f.model ?? null, detail, reservedId);
     return;
   }
   db.prepare(
-    `INSERT INTO processing_runs (job_id, stage, provider, model, status, error_code, latency_ms, input_tokens, output_tokens, cost_usd, detail, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(jobId, stage, f.provider, f.model ?? null, f.status, f.errorCode ?? null, f.latencyMs ?? null, f.inputTokens ?? null, f.outputTokens ?? null, f.costUsd ?? null, detail, now);
+    `INSERT INTO processing_runs (job_id, stage, provider, model, status, error_code, latency_ms, input_tokens, output_tokens, cost_usd, credits, detail, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(jobId, stage, f.provider, f.model ?? null, f.status, f.errorCode ?? null, f.latencyMs ?? null, f.inputTokens ?? null, f.outputTokens ?? null, f.costUsd ?? null, f.credits ?? null, detail, now);
 }

@@ -28,9 +28,14 @@ const EnvSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /** Supadata credits (Instagram) over any rolling 24 hours / 30 days, and per job. Free plan: 100/month. */
+  SUPADATA_DAILY_CREDITS: number(25),
+  SUPADATA_MONTHLY_CREDITS: number(90),
+  SUPADATA_MAX_JOB_CREDITS: number(12),
   // Overridable for tests against a local mock server.
   OPENROUTER_BASE_URL: z.url().default("https://openrouter.ai/api/v1"),
   YOUTUBE_API_BASE_URL: z.url().default("https://www.googleapis.com/youtube/v3"),
+  SUPADATA_BASE_URL: z.url().default("https://api.supadata.ai/v1"),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -61,6 +66,12 @@ export function requireEnv<K extends keyof Env>(name: K): NonNullable<Env[K]> {
     throw new Error(`Missing required environment variable ${String(name)}`);
   }
   return value as NonNullable<Env[K]>;
+}
+
+/** Instagram runs live when switched on and its two keys are present. */
+export function instagramLive(): boolean {
+  const e = env();
+  return pipelineMode() === "live" && e.INSTAGRAM_ENABLED && Boolean(e.SUPADATA_API_KEY && e.OPENROUTER_API_KEY);
 }
 
 /** Live processing needs both keys; without them (or when asked) we serve the saved fixtures. */

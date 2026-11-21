@@ -74,11 +74,20 @@ CREATE TABLE IF NOT EXISTS source_cache (key TEXT PRIMARY KEY, data TEXT NOT NUL
 
 export type Db = DatabaseSync;
 
+/** Additive changes to existing databases. Each step checks before it alters. */
+function migrate(db: Db) {
+  const runCols = (db.prepare("PRAGMA table_info(processing_runs)").all() as { name: string }[]).map((c) => c.name);
+  // M3: Supadata credits, tracked separately from AI cost.
+  if (!runCols.includes("credits")) db.exec("ALTER TABLE processing_runs ADD COLUMN credits INTEGER");
+  if (!runCols.includes("worst_case_credits")) db.exec("ALTER TABLE processing_runs ADD COLUMN worst_case_credits INTEGER");
+}
+
 export function openDb(file: string): Db {
   if (file !== ":memory:") fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL;");
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 

@@ -15,7 +15,7 @@ export const STAGE_LABEL: Record<StageKey, string> = {
   normalize: "Writing up your recipe",
 };
 
-export const JobErrorCode = z.enum(["unavailable", "not_a_recipe", "upstream_failed", "invalid_output", "limited", "preview_only", "too_long"]);
+export const JobErrorCode = z.enum(["unavailable", "not_a_recipe", "upstream_failed", "invalid_output", "limited", "preview_only", "too_long", "not_a_video"]);
 export type JobErrorCode = z.infer<typeof JobErrorCode>;
 
 export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string; retry: boolean }> = {
@@ -49,6 +49,11 @@ export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string;
     body: "This preview only works with the example videos below. Real YouTube and Instagram links are coming next.",
     retry: false,
   },
+  not_a_video: {
+    title: "This post isn't a video",
+    body: "Reelish reads Reels and video posts. Photo and carousel posts aren't supported.",
+    retry: false,
+  },
   too_long: {
     title: "This video is too long",
     body: "Reelish handles videos up to 15 minutes for now.",
@@ -77,7 +82,7 @@ export type StartError = z.infer<typeof StartError>;
 
 export const START_ERROR_TEXT: Record<StartError, string> = {
   rate_limited: "You've started a lot of recipes in the last hour. Please wait a bit and try again.",
-  instagram_not_yet: "Instagram links aren't supported yet. For now Reelish reads YouTube videos and Shorts.",
+  instagram_not_yet: "Instagram links aren't switched on right now. YouTube videos and Shorts work.",
 };
 
 /** POST /api/jobs: either a job to watch, or a recipe that's already been made. */
