@@ -24,9 +24,43 @@ This is an engineering summary, not legal advice. Items marked **open** need a d
 - **How we limit exposure:**
   - Public Reels only.
   - Creator text first; paid transcript or visual steps only when needed.
-  - We keep the caption, transcript and visual notes only as a cache (24 h / 7 days).
+  - We keep the raw caption, transcript and visual notes only as a cache (24 h / 7 days). **But** the recipe
+    derived from them is stored indefinitely, and its evidence quotes short caption lines. Caching doesn't make
+    this permitted.
   - The recipe always credits the creator and links the original Reel.
   - Images aren't stored.
+
+### Is there an authorized, link-based alternative? (checked 2026-11-22, Meta developer docs)
+
+**No.** Nothing official turns an arbitrary Reel link into recipe text.
+
+| Option | What it gives | Can we use it to make recipes? |
+|---|---|---|
+| **Instagram oEmbed** (`GET /instagram_oembed`; "Meta oEmbed Read"; no token needed since May 2026) | Embed HTML for a public post or Reel. The caption only appears inside that HTML. `author_name` and `thumbnail_url` were removed in November 2025 | **No.** The docs restrict it to "embedding Instagram content in websites and apps". Using the metadata or content "for any purpose other than providing a front-end view … is strictly prohibited", including "extracting, or persisting". **Display only.** |
+| **Business Discovery** (Instagram Graph API) | Recent media of other *Business or Creator* accounts, including captions | **Not for our flow.** It needs our own Instagram professional account, Facebook Login and the `instagram_basic`, `instagram_manage_insights` and `pages_read_engagement` permissions. It is queried by username, not by Reel link, can't fetch a single item, and doesn't cover personal accounts. Processing the data is governed by the Platform Terms (§3.a.viii: only "permitted purposes set forth in Meta's Developer Docs"). Developer Policies §6.2 needs Meta's permission to "simply display User Content". Whether recipe extraction is a permitted purpose is **unverified**; it would need App Review |
+| **Instagram API for our own account** | Our own media only | Not relevant |
+
+Sources: [oEmbed](https://developers.facebook.com/docs/instagram-platform/oembed),
+[oEmbed reference](https://developers.facebook.com/docs/graph-api/reference/instagram-oembed),
+[changelog](https://developers.facebook.com/documentation/instagram-platform/changelog),
+[Business Discovery](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/business-discovery),
+[Platform Terms](https://developers.facebook.com/terms/), [Developer Policies](https://developers.facebook.com/devpolicy/).
+Not read: the Instagram Terms of Use and the "Meta oEmbed Read" feature page.
+
+### What we can responsibly make public
+- **YouTube:** yes (official Data API, plus Gemini's YouTube-URL input; see below).
+- **Instagram, as built (Supadata):** **not without an explicit owner decision to accept the risk.** The
+  recommended production setting is `INSTAGRAM_ENABLED=false`. The built-in examples (fixtures) keep working,
+  so the feature is demonstrable.
+- **Options that don't rely on scraping, and are not built:**
+  1. The person pastes the Reel's caption text themselves, alongside the link. The text comes from the user;
+     we credit and link the creator.
+  2. The person pastes the creator's recipe-page link. We already read creator pages via JSON-LD, respecting
+     robots.txt.
+  3. Showing the Reel next to a recipe with the official embed (display only, nothing extracted).
+  4. Creator opt-in or partnerships.
+
+  1 and 2 are small, but they are new features, so they're listed for a decision rather than added.
 - **Replaceability:**
   - All Supadata code lives in `lib/sources/instagram/supadata.ts`, behind the `InstagramProvider` interface
     (`lib/sources/instagram/types.ts`).

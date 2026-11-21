@@ -6,6 +6,16 @@ needs your approval. DeepClean.app's files, services, Nginx server block and cer
 Placeholders to confirm during inspection: domain `reelish.example.com`, port `3101`, Node path
 `/opt/reelish/node`.
 
+## Isolation from DeepClean.app
+
+| Shared | Separate for Reelish |
+|---|---|
+| The machine (CPU, RAM, disk) and the Nginx process | Linux user, Node binary, code directory, port, systemd units, env file, database, backups, logs (`-u reelish-*`), Nginx server block, certificate, rate-limit zones |
+
+- `MemoryMax` on both units caps Reelish's RAM, so a runaway job can't starve DeepClean.
+- Nothing in this plan edits, restarts or reads DeepClean's files, units or certificates. The only shared
+  action is `nginx -t && systemctl reload nginx`.
+
 ## Shape
 
 ```
@@ -164,14 +174,30 @@ server {
 - **Always run `nginx -t` before `systemctl reload nginx`.** Reload, not restart, so DeepClean's connections
   aren't dropped.
 
+**Compatibility with the existing Nginx (check in step 0, before writing the file):**
+- **Default site.** If no server block has `default_server`, Nginx answers unknown hosts and bare-IP requests
+  with the first server block it loads for that port. Files load alphabetically, so `deepclean` stays ahead of
+  `reelish`, but confirm it. Reelish must never become the default.
+- **`http2 on;`** needs Nginx ≥ 1.25.1. On older versions, use `listen 443 ssl http2;` instead.
+- **Cloudflare or another proxy in front?** If DeepClean's DNS goes through Cloudflare and Reelish's does too,
+  `$remote_addr` is a Cloudflare address. Every visitor would then share one rate-limit bucket in Nginx *and* in
+  the app. In that case add `set_real_ip_from <Cloudflare ranges>; real_ip_header CF-Connecting-IP;` to the
+  Reelish server block only.
+- **Zone names:** `limit_req_zone` names live in one global namespace. Ours are prefixed `reelish_`; check
+  nothing else uses them (`nginx -T | grep limit_req_zone`).
+- **ACME directory** `/var/www/reelish-acme` is new and only used by this server block. Existing certbot
+  renewal hooks (usually `systemctl reload nginx`) work unchanged.
+
 ## Spending limits (several layers)
 
 1. **OpenRouter:** a separate production key with a **credit limit** (say $5) set in the OpenRouter dashboard.
-   This is the hard ceiling, even if our code has a bug.
+   This is the hard ceiling, even if our code has a bug. (Checked 2026-11-22: the development key has a $20 limit
+   with $0.0858 used. Revoking either key doesn't affect the other.)
 2. **App:** `DAILY_AI_BUDGET_USD` (rolling 24 h) and `MAX_JOB_COST_USD` (per call). Calls are reserved at worst
    case before they're made.
 3. **Supadata:** the free plan stops at 100 credits a month. The app's own daily, 30-day and per-job caps sit
-   below that.
+   below that. (Checked 2026-11-22 via `GET /v1/me`, which costs nothing: 24 of 100 used.) Only relevant if
+   Instagram is switched on.
 4. **YouTube Data API:** 10,000 units a day free; we use 1 per new video. Restrict the key to this API (and to
    the server's IP if possible).
 5. **Per visitor:** Nginx `limit_req`, plus `RATE_LIMIT_PER_HOUR` per visitor (salted hash of the real IP).
@@ -189,7 +215,20 @@ working.
   backoff.
 - SQLite in WAL mode with a 5 s busy timeout. Writes are tiny and both processes share one file. That's fine at
   this scale. If it ever isn't, the move is PostgreSQL behind `lib/db/` (decision D7).
-- **Risk:** if the worker is down, jobs queue silently. The health check below catches this.
+- **Risk:** if the worker is down or stuck, jobs queue silently.
+  - `Restart=always` covers crashes.
+  - A job that hangs is aborted at 180–240 s and recovered.
+  - A worker that is alive but not claiming jobs is caught by the health timer below.
+
+### Health monitoring (proposed)
+- **`reelish-health.timer`** runs every 5 minutes as root and calls `/opt/reelish/health.sh`, which:
+  1. curls `http://127.0.0.1:3101/r/yt-healthcheck`, expecting 404 (app and database);
+  2. reads the oldest queued job's age with the read-only query below. If it's over 3 minutes, it runs
+     `systemctl restart reelish-worker` and logs `reelish_health worker_restarted` to journald.
+
+  It only ever touches `reelish-*` units.
+- **External uptime check** (for example a free UptimeRobot monitor) on `https://reelish.example.com/`, so an
+  outage alerts you even if the VPS itself is down.
 
 ## Commands
 
@@ -230,11 +269,18 @@ sudo systemctl restart reelish-worker reelish-web
 # then run the health checks
 ```
 
-### Rollback
+### Rollback (touches only Reelish)
 ```bash
+# To the previous release:
 sudo ln -sfn /opt/reelish/releases/<previous-sha> /opt/reelish/current
 sudo systemctl restart reelish-worker reelish-web
+
+# Take Reelish offline entirely (e.g. the first deploy goes wrong):
+sudo systemctl disable --now reelish-web reelish-worker reelish-health.timer
+sudo rm /etc/nginx/sites-enabled/reelish && sudo nginx -t && sudo systemctl reload nginx
 ```
+- None of these commands names a DeepClean file or unit.
+- After any Nginx change, check DeepClean still answers: `curl -sI https://deepclean.app | head -1`.
 - Database changes so far are additive (new columns only), so an older release runs against a newer database.
 - If a future release changes the schema in a way that isn't additive, restore the pre-deploy backup with both
   services stopped.
@@ -266,6 +312,7 @@ new DatabaseSync("/var/lib/reelish/reelish.db").exec(`VACUUM INTO '${out}'`);
 | `ReelishBot/0.1` user agent has no contact URL | Open (`PLATFORM-CONSTRAINTS.md`); add one before launch |
 | The worker loads `.env`/`.env.local` from its working directory | Release check: no `.env*` files |
 | Node 22 needed, system Node may be older | Separate Node in `/opt/reelish/node` |
+| Secrets must stay on the server | Checked 2026-11-22: the production build's browser files (`.next/static`, 36 files) contain no key values or key names. Keys are read only in `lib/env.ts` (`server-only`) |
 
 ## What we'll inspect first (read-only, step 0)
 
@@ -273,7 +320,8 @@ new DatabaseSync("/var/lib/reelish/reelish.db").exec(`VACUUM INTO '${out}'`);
 `node -v; which node` (and what DeepClean's unit uses) ·
 `systemctl list-units --type=service | grep -i -E 'deepclean|node|nginx'` ·
 `ss -ltnp` (free ports, nothing on 3101) ·
-`nginx -v; nginx -T | grep -E 'server_name|listen|include|limit_req_zone'` ·
+`nginx -v; nginx -T | grep -E 'server_name|listen|default_server|include|limit_req_zone|real_ip'` ·
+whether DeepClean is behind Cloudflare (`curl -sI https://deepclean.app | grep -i -E 'server|cf-ray'`) ·
 `ls /etc/letsencrypt/live; systemctl list-timers | grep certbot` ·
 `ufw status` or `iptables -S` ·
 DNS: `dig +short reelish.example.com`.
