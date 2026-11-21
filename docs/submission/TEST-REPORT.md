@@ -99,7 +99,8 @@ build.
 
 ## Production smoke test (deployed site, 2026-11-22 01:10–01:22 IST)
 
-Run against `https://deepclean.app/reelish` (release `4d6083c`), not localhost.
+Run against `https://deepclean.app/reelish` (release `4d6083c`), not localhost. The browser checks were
+re-run at about 01:55 IST on the current release `af44fbb` (a start-form fix): 42/42 passed, cached videos only, $0.
 
 **Browser checks:** `node scripts/smoke-prod.mjs` (Chromium, desktop 1280×860 and Pixel 7). **42/42 passed**
 on the final run:

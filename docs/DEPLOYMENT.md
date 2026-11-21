@@ -1,6 +1,6 @@
 # Deployment: Reelish on the shared VPS
 
-**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST (release `4d6083c`). The server also runs
+**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST. First release `4d6083c`; now `af44fbb`, which adds a small start-form fix. The server also runs
 DeepClean.app and a few other small apps owned by the same person. Reelish shares only the machine and the
 Nginx process.
 DeepClean's files, database, Node and services were not touched.
