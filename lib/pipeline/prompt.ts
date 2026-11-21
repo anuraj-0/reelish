@@ -3,7 +3,7 @@ import { z } from "zod";
 /** Bump when the prompt or the model-output shape changes (part of the AI-response cache key). */
 export const PROMPT_VERSION = "yt-prompt-1";
 
-export const LLM_SOURCES = ["video_speech", "video_on_screen_text", "video_visual", "description", "linked_recipe", "model_estimate"] as const;
+export const LLM_SOURCES = ["video_speech", "video_on_screen_text", "video_visual", "description", "caption", "linked_recipe", "model_estimate"] as const;
 const Src = z.enum(LLM_SOURCES);
 export type LlmSource = z.infer<typeof Src>;
 
@@ -143,7 +143,52 @@ export const REPAIR_PROMPT = `Your previous answer did not match the required JS
 Return ONLY the corrected JSON object, with the same content, in exactly the shape described in the instructions.
 Do not add new facts. Problems found:`;
 
-export function sourceBlock(name: "VIDEO_DETAILS" | "DESCRIPTION" | "LINKED_RECIPE", body: string): string {
+export const INSTAGRAM_PROMPT_VERSION = "ig-prompt-1";
+
+/**
+ * Instagram: we can't give the model the video (no media access), only text gathered about it.
+ * Same output shape as SYSTEM_PROMPT; what differs is where each source comes from.
+ */
+export const INSTAGRAM_PROMPT = SYSTEM_PROMPT.replace(
+  `You get the video itself and SOURCE blocks with the creator's own text: VIDEO_DETAILS, usually a DESCRIPTION,
+and sometimes LINKED_RECIPE (the written recipe page the creator linked).`,
+  `You do NOT get the video. You get SOURCE blocks about an Instagram Reel: REEL_DETAILS, the creator's CAPTION,
+sometimes LINKED_RECIPE (the written recipe page the creator linked), sometimes TRANSCRIPT (the Reel's spoken
+words with start times) and sometimes VISUAL_NOTES (an automated description of what the Reel shows, which can
+contain mistakes).`,
+)
+  .replace(
+    `- "video_speech": said aloud in the video
+- "video_on_screen_text": written on screen by the creator (captions, overlays)
+- "video_visual": only seen in the video, not said or written (a carton label, a garnish)
+- "description": appears in the DESCRIPTION block`,
+    `- "video_speech": appears in the TRANSCRIPT block
+- "video_on_screen_text": VISUAL_NOTES reports it as text shown on screen
+- "video_visual": VISUAL_NOTES reports it as only seen, not said or written
+- "caption": appears in the CAPTION block`,
+  )
+  .replace(
+    `1. Attribute every fact only to the sources where it actually appears. Never cite DESCRIPTION or LINKED_RECIPE
+   for something that isn't in that block, and never cite the video for something only in a text block.`,
+    `1. Attribute every fact only to the sources where it actually appears. Never cite a block for something that
+   isn't in it. Without a TRANSCRIPT block, never use "video_speech"; without VISUAL_NOTES, never use
+   "video_on_screen_text" or "video_visual".`,
+  )
+  .replace(
+    `6. "video_timestamp" only for steps actually shown or said in the video. Otherwise null. Never exceed the
+   video's duration.`,
+    `6. "video_timestamp" only for steps whose words appear in TRANSCRIPT: use that line's start time. Otherwise null.`,
+  )
+  .replace(
+    `10. If the video doesn't show how to prepare food or a drink, return "is_recipe": false, a short "title"
+    describing the video, and empty lists.`,
+    `10. If the sources don't describe how to prepare food or a drink, return "is_recipe": false, a short "title",
+    and empty lists. Never fill in a recipe from general knowledge: only what the sources say.`,
+  );
+
+export type SourceName = "VIDEO_DETAILS" | "DESCRIPTION" | "LINKED_RECIPE" | "REEL_DETAILS" | "CAPTION" | "TRANSCRIPT" | "VISUAL_NOTES";
+
+export function sourceBlock(name: SourceName, body: string): string {
   // Strip our own delimiters from untrusted text so it can't fake the end of a block.
   const clean = body.replace(/<<<|>>>/g, "");
   return `<<<SOURCE ${name}>>>\n${clean}\n<<<END ${name}>>>`;

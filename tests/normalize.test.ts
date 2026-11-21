@@ -193,3 +193,29 @@ describe("quantityAppearsIn / stripQuantities", () => {
     expect(stripQuantities("Whisk 2 eggs.")).toBe("Whisk 2 eggs.");
   });
 });
+
+describe("Instagram prompt", () => {
+  it("is derived from the YouTube prompt with every Instagram-specific edit applied", async () => {
+    const { INSTAGRAM_PROMPT, SYSTEM_PROMPT } = await import("@/lib/pipeline/prompt");
+    expect(INSTAGRAM_PROMPT).not.toBe(SYSTEM_PROMPT);
+    for (const phrase of ["You do NOT get the video", '"caption": appears in the CAPTION block', "Without a TRANSCRIPT block", "use that line's start time", "Never fill in a recipe from general knowledge"]) {
+      expect(INSTAGRAM_PROMPT).toContain(phrase);
+    }
+    for (const gone of ["You get the video itself", '"description": appears in the DESCRIPTION block']) expect(INSTAGRAM_PROMPT).not.toContain(gone);
+  });
+});
+
+describe("quantityAppearsIn for transcripts", () => {
+  const transcript = "[0:20] for the secret we melt butter with a little bit\n[0:24] of beer soak a cheesecloth\n[0:16] we also add an orange and tie the legs";
+  it("matches across a line break only when asked (transcripts)", () => {
+    expect(quantityAppearsIn(transcript, "a little bit", "Beer", null, { joinLines: true })).toContain("of beer");
+    expect(quantityAppearsIn(transcript, "a little bit", "Beer", null)).toBeNull();
+  });
+  it("reads 'an orange' as 1", () => {
+    expect(quantityAppearsIn(transcript, "1", "Orange", null)).toContain("an orange");
+    expect(quantityAppearsIn(transcript, "2", "Orange", null)).toBeNull();
+  });
+  it("never lets a neighbouring ingredient line vouch for an amount", () => {
+    expect(quantityAppearsIn("2 tablespoons olive oil\n1 diced yellow onion", "2 tablespoons", "Yellow onion", null)).toBeNull();
+  });
+});

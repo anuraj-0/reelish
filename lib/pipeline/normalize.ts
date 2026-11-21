@@ -13,7 +13,8 @@ import type { LlmRecipe, LlmSource } from "./prompt";
  * - amounts the model inferred (model_estimate) are dropped: missing stays missing;
  * - amounts are stripped from step text; unknown ingredient references are dropped;
  * - timestamps outside the video or on steps not attributed to the video are dropped.
- * Video-sourced claims can't be checked automatically and are kept as stated.
+ * When the model watched the video (YouTube), video-sourced claims can't be checked and are kept.
+ * When it only read a transcript and visual notes (Instagram), those claims are checked against them.
  */
 
 export type NormalizeInput = {
@@ -21,17 +22,24 @@ export type NormalizeInput = {
   pipelineVersion: string;
   createdAt: string;
   stages: string[];
-  video: { videoId: string; url: string; title: string; channelTitle: string; durationSec: number; thumbnailUrl: string | null };
+  platform?: "youtube" | "instagram";
+  video: { videoId: string; url: string; title: string | null; channelTitle: string; creatorHandle?: string | null; durationSec: number; thumbnailUrl: string | null };
   /** Exactly the text blocks given to the model; null when not provided. */
   description: string | null;
   linked: { url: string; text: string } | null;
+  caption?: string | null;
+  /** Instagram: the transcript and visual notes stand in for the video the model didn't see. */
+  transcript?: string | null;
+  visual?: string | null;
+  /** True when the model was given the video itself (YouTube). Default true. */
+  videoWatched?: boolean;
 };
 
 export type NormalizeResult = { recipe: Recipe; warnings: string[] };
 
 const VIDEO_SOURCES: ReadonlySet<LlmSource> = new Set(["video_speech", "video_on_screen_text", "video_visual"]);
-const TEXT_SOURCES = ["description", "linked_recipe"] as const;
-type TextSource = (typeof TEXT_SOURCES)[number];
+/** Sources whose claims we can check against text we hold. */
+type TextSource = "description" | "caption" | "linked_recipe" | "video_speech" | "video_on_screen_text" | "video_visual";
 
 const FRACTIONS: Record<string, string> = { "½": "1/2", "⅓": "1/3", "⅔": "2/3", "¼": "1/4", "¾": "3/4", "⅛": "1/8" };
 
@@ -61,7 +69,7 @@ const nameWords = (name: string) =>
  * quote appears verbatim and contains the amount's numbers, or when one line mentions the
  * ingredient and contains the amount (all its numbers, or its wording for "to taste").
  */
-export function quantityAppearsIn(text: string, quantity: string, ingredientName: string, quote: string | null): string | null {
+export function quantityAppearsIn(text: string, quantity: string, ingredientName: string, quote: string | null, opts: { joinLines?: boolean } = {}): string | null {
   const nums = numbersIn(quantity);
   const qNorm = normalizeText(quantity);
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
@@ -71,12 +79,16 @@ export function quantityAppearsIn(text: string, quantity: string, ingredientName
     if (line && quoteNorm && (nums.length ? nums.every((n) => numbersIn(quote).includes(n)) : quoteNorm.includes(qNorm))) return line.trim();
   }
   const words = nameWords(ingredientName);
-  for (const line of lines) {
+  // Transcripts break mid-sentence ("…with a little bit" / "of beer…"), so there we also try each pair
+  // of lines. Never for ingredient lists, where a neighbouring line belongs to another ingredient.
+  const windows = opts.joinLines ? [...lines, ...lines.slice(0, -1).map((l, i) => `${l} ${lines[i + 1]}`)] : lines;
+  for (const line of windows) {
     const lineNorm = normalizeText(line);
     const lineNums = numbersIn(line);
-    const mentions = words.some((w) => lineNorm.includes(w));
-    if (!mentions) continue;
+    if (!words.some((w) => lineNorm.includes(w))) continue;
     if (nums.length ? nums.every((n) => lineNums.includes(n)) : lineNorm.includes(qNorm)) return line.trim();
+    // "1" said as "an orange" / "one whole orange".
+    if (nums.length === 1 && nums[0] === "1" && words.some((w) => new RegExp(`\\b(?:a|an|one)\\s+(?:whole\\s+|large\\s+|small\\s+|medium\\s+)?${w}`).test(lineNorm))) return line.trim();
   }
   return null;
 }
@@ -101,11 +113,18 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
     throw new PipelineError("not_a_recipe", "model found no recipe in this video");
   }
 
-  const texts: Record<TextSource, string | null> = {
-    description: input.description?.trim() ? input.description : null,
+  const watched = input.videoWatched ?? true;
+  const present = (t: string | null | undefined) => (t?.trim() ? t : null);
+  const texts: Partial<Record<TextSource, string | null>> = {
+    description: present(input.description),
+    caption: present(input.caption),
     linked_recipe: input.linked?.text ?? null,
+    ...(watched ? {} : { video_speech: present(input.transcript), video_on_screen_text: present(input.visual), video_visual: present(input.visual) }),
   };
-  const available = (s: LlmSource) => VIDEO_SOURCES.has(s) || s === "model_estimate" || (s in texts && texts[s as TextSource] !== null);
+  const TEXT_SOURCES = (Object.keys(texts) as TextSource[]).filter((k) => texts[k] !== null);
+  // Not a type guard on purpose: which sources count as text depends on this run's inputs.
+  const isText = (s: LlmSource | null): boolean => s !== null && TEXT_SOURCES.includes(s as TextSource);
+  const available = (s: LlmSource) => s === "model_estimate" || (VIDEO_SOURCES.has(s) && watched) || isText(s);
   const evidence = (source: LlmSource, extra: Partial<Evidence> = {}): Evidence => ({
     source,
     ...(source === "linked_recipe" && input.linked ? { url: input.linked.url } : {}),
@@ -135,21 +154,21 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
     if (qty) {
       const claimed = ing.quantity_source;
       // Text claims are checked against the text itself; we also look in the other text source.
-      const textOrder: TextSource[] =
-        claimed === "description" || claimed === "linked_recipe" ? [claimed, ...TEXT_SOURCES.filter((t) => t !== claimed)] : [...TEXT_SOURCES];
+      const textOrder: TextSource[] = isText(claimed) ? [claimed as TextSource, ...TEXT_SOURCES.filter((t) => t !== claimed)] : [...TEXT_SOURCES];
       const verify = () => {
         for (const t of textOrder) {
           const body = texts[t];
-          const line = body ? quantityAppearsIn(body, qty, ing.name, ing.quantity_quote) : null;
+          const line = body ? quantityAppearsIn(body, qty, ing.name, ing.quantity_quote, { joinLines: t === "video_speech" }) : null;
           if (line) return { source: t, line };
         }
         return null;
       };
 
-      if (claimed === "description" || claimed === "linked_recipe") {
+      if (isText(claimed)) {
         const found = verify();
         if (found) {
-          status = "stated";
+          // Read off packaging/visuals is never more than a suggestion.
+          status = found.source === "video_visual" ? "suggested" : "stated";
           quantityEvidence = evidence(found.source, { excerpt: found.line });
           if (found.source !== claimed) warnings.push(`"${ing.name}" amount found in ${found.source}, not ${claimed}`);
         } else {
@@ -164,7 +183,7 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
         // No source, or the model's own estimate: only keep it if a creator text really says it.
         const found = verify();
         if (found) {
-          status = "stated";
+          status = found.source === "video_visual" ? "suggested" : "stated";
           quantityEvidence = evidence(found.source, { excerpt: found.line });
         } else {
           warnings.push(`dropped unsupported amount "${qty}" for "${ing.name}"`);
@@ -207,7 +226,7 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
     const ev = sources.map((s) => {
       const extra: Partial<Evidence> = {};
       if (VIDEO_SOURCES.has(s) && ts !== null) extra.videoTimestampSec = ts;
-      const body = s === "description" || s === "linked_recipe" ? texts[s] : null;
+      const body = isText(s) ? texts[s as TextSource] : null;
       if (body && step.quote && normalizeText(body).includes(normalizeText(step.quote))) extra.excerpt = step.quote;
       return evidence(s, extra);
     });
@@ -274,15 +293,15 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
     id: input.recipeId,
     schemaVersion: 1,
     source: {
-      platform: "youtube",
+      platform: input.platform ?? "youtube",
       videoId: input.video.videoId,
       url: input.video.url,
-      creator: { name: input.video.channelTitle || null, handle: null },
+      creator: { name: input.video.channelTitle || null, handle: input.video.creatorHandle ?? null },
       videoTitle: input.video.title,
       thumbnailUrl: input.video.thumbnailUrl,
       linkedRecipeUrls: input.linked ? [input.linked.url] : [],
     },
-    title: (llm.title.trim() || input.video.title).slice(0, 120),
+    title: (llm.title.trim() || input.video.title || "Untitled recipe").slice(0, 120),
     servings: servings ? { ...servings, value: firstNumber ? Number(firstNumber) : null } : null,
     prepTime: time(llm.prep_time, "prep time"),
     cookTime: time(llm.cook_time, "cook time"),
