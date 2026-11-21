@@ -52,16 +52,26 @@ proposed fresh runs are at the end and are waiting for approval.
   Reel in these runs (row 9's transcript was native captions: 1 credit).
 - Job time: 5.7–17.8 s for recipes, and 0.2–4.5 s for refusals.
 
-### Extraction issues found in real outputs (not fixed: wording only, low risk)
-- **Turkey "1 5kg"**: the blog says "1 5kg turkey (11 lbs)". The "(11 lbs)" that disambiguates it was dropped,
-  so it can read as "15 kg". We keep creator text verbatim, so the fix would be to carry the parenthetical into
-  the quantity, not to rewrite it.
-- **Doneness cues with broken grammar**: "Done when get golden", "Done when reading of 180F…". The UI adds
-  "Done when" in front of a phrase that doesn't always fit.
-- **"every 40 minutes" (basting) is shown with the timer icon**, as if it were a cooking time.
-- **Steps that list every ingredient**: pasta salad step 6 ("Toss in the crispy pasta and serve") shows all 12
-  amounts again. On a 375 px phone, 5 of them sit below the controls (see the UX section of the test report).
-- **One blog aside became a step** (soup Reel step 2: "no need to dice finely").
+### Extraction issues found in real outputs, and what changed
+
+| Issue (real output) | Fix (explicit rule; no AI rewriting) | Verified on |
+|---|---|---|
+| Turkey "1 5kg" (blog: "1 5kg turkey (11 lbs)") reads as 15 kg | A count followed by a size ("1 5kg", "2 14 oz cans") is flagged as ambiguous and not parsed as a number. The row shows the creator's line as written: *Creator wrote: "1 5kg turkey (11 lbs)"*. The amount itself isn't changed or guessed | Real turkey output (`ig-turkey` fixture); it's the only flagged amount in the 7 real recipes |
+| "Done when get golden", "Done when reading of 180F…" | A cue that starts with a bare verb gets "Done when it …" (*"Done when it gets golden"*). "reading/temperature of …" gets *"Done at a reading of …"*. Other cues are unchanged | Every cue in the 7 real recipes; none still starts "Done when get/come/turn…" |
+| "every 40 minutes" (basting) shown with the timer icon | Intervals ("every/each …") are stored with no minutes and shown with a repeat icon (*"Every 40 minutes"*) | Real turkey output; it's the only interval among the real durations |
+| Pasta step 6 repeated all 12 amounts; 5 below the buttons on a 375 px phone | Cook Mode shows an ingredient if it's first used in the step **or named in the instruction** (so reused ingredients stay: kaju "Roll in sugar", carbonara "Garnish with parmesan and pepper"). Others go under a collapsed **"Already added (n)"** | All 7 real recipes: no ingredient is ever dropped, and first uses are always shown (tests). Browser check below |
+| One blog aside became a step (soup Reel step 2) | Not changed: it's harmless, and a rule to detect asides would be guesswork | – |
+| "Done when pasta seems to be doing well" (carbonara) | Not changed: it's the model's paraphrase of speech; no safe rule | – |
+
+**Browser check after the fixes:**
+- The production build, with the 6 stored real recipes, at 375×667, 412×839, 768×1024, 1024×768 and 1280×800.
+  Every Cook Mode step was stepped through.
+- **298/300 step views** show the instruction and every "for this step" ingredient without scrolling.
+  - Before the fixes, 3 steps were cut off at 375×667 and 1 on the Pixel 7. Tablet and desktop weren't measured
+    then.
+  - The remaining 2 are 5-ingredient steps at 1024×768 (turkey step 1, pasta step 5), where the fifth row sits
+    just below the buttons.
+- No axe violations (including with "Already added" open), no horizontal overflow, no console errors.
 
 ## Coverage
 
@@ -77,29 +87,66 @@ proposed fresh runs are at the end and are waiting for approval.
 | Inaccessible URL | 5, 10 | 5 is a made-up id, not a real private or removed video |
 | Run-to-run consistency | spike only (soup: same result, timestamps ±3 s) | No repeat through the current pipeline |
 
-## Proposed fresh runs (needs approval; not run)
+## Fresh runs F1–F4: plan for approval (not run)
 
-Candidates were checked for free with `npm run estimate` (YouTube Data API only, no AI call) on 2026-11-21. The
-Instagram slots need links from you: checking a Reel costs a Supadata credit, so I haven't picked any.
+Checked on 2026-11-22 with free calls only:
+- `npm run estimate` (YouTube Data API, no AI call);
+- OpenRouter `GET /api/v1/key`;
+- Supadata `GET /v1/me`, called twice; the used count didn't change, so it's free.
 
-| # | Fills gap | Link | What the free check showed | Expected result | Expected cost | Worst case |
+**Balances:**
+- **OpenRouter:** $0.0858 used of the key's $20 limit ($19.91 left). This matches our ledger.
+- **Supadata:** free plan, 24 of 100 credits used this period.
+
+| # | Link | Checked | Expected path | Expected result | Expected cost | Worst case |
 |---|---|---|---|---|---|---|
-| F1 | Long-form (13:28), new creator | [youtube.com/watch?v=i2AZRDIsMlc](https://www.youtube.com/watch?v=i2AZRDIsMlc) (Food52 with Joshua Weissman, cookie) | The recipe link `f52.co/3QAzlJq` returns 404; the description has chapters but no ingredient list | Partial: spoken amounts only, the rest "Not specified" | ~$0.030 | $0.0905 |
-| F2 | Minimal speech / no on-screen recipe | [youtube.com/watch?v=UFmW_IaiLCM](https://www.youtube.com/watch?v=UFmW_IaiLCM) ("Cozy Home Cooking ASMR … No Talking", 5:17) | The description names vegetables and spices, no amounts | Partial with every amount "Not specified", or "doesn't look like a recipe". Either is acceptable; inventing amounts is not | ~$0.015 | $0.0455 |
-| F3 | Over the length limit | [youtube.com/watch?v=kazwMSkeoSQ](https://www.youtube.com/watch?v=kazwMSkeoSQ) (2 h 22 m ASMR) | 8,537 s, over the 15-minute cap | "Too long", no AI call | $0 | $0 |
-| F4 | Instagram, **different creator**, recipe in the caption | *your link* | – | Complete | ~$0.007 + 1 credit | $0.017 + 1 credit |
-| F5 | Instagram, different creator, **music only, no recipe in the caption** (visual-notes path, never run live) | *your link* | – | Partial or "no recipe found" | ~$0.007 + 3–8 credits | $0.017 + 12 credits (per-job cap) |
-| F6 | Run-to-run consistency | Row 2 (Kaju Short) again, on a database copy with its AI cache entry removed | – | Same ingredients and step order as row 2 | ~$0.007 | $0.025 |
+| F3 | [youtube.com/watch?v=kazwMSkeoSQ](https://www.youtube.com/watch?v=kazwMSkeoSQ) | 8,537 s (2:22:17) | metadata → refused "too long" | No AI call | $0 | $0 |
+| F2 | [youtube.com/watch?v=UFmW_IaiLCM](https://www.youtube.com/watch?v=UFmW_IaiLCM): "Cozy Home Cooking ASMR … No Talking", channel "Crunch queen" | 317 s; the description names vegetables and spices, no amounts; no links | metadata → video (Gemini) | Partial with every amount "Not specified", or "doesn't look like a recipe". Any invented amount is a failure | $0.0154 | $0.0455 |
+| F1 | [youtube.com/watch?v=i2AZRDIsMlc](https://www.youtube.com/watch?v=i2AZRDIsMlc): Food52 with Joshua Weissman, "Giant Baseball Cookies" | 808 s (13:28); the recipe link `f52.co/3QAzlJq` returns 404; the description has chapters, no ingredients | metadata → linked recipe (fails) → video | Partial: spoken amounts only | $0.0295 | $0.0905 |
+| F4 | **Instagram Reel from another creator: not found yet** (see below) | – | caption → (linked recipe) → transcript if needed | depends | ~$0.007 + 1–3 credits | $0.017 + 12 credits (per-job cap) |
 
-- **Expected:** about $0.066 of OpenRouter and 4–9 Supadata credits.
-- **Worst case:** $0.195 and 13 credits.
-- Spend so far: about $0.086 of OpenRouter (spike + M2 + M3), and 24 of 100 Supadata credits this period.
-- Expected spend stays well inside the $20 OpenRouter budget and the $0.20 development cap.
-  - Worst case would pass the $0.20 cap, so the runs go one at a time, cheapest first, and **stop if the
-    cumulative actual passes $0.18**.
-  - The app's own caps still apply: $0.12 per call, $1 per 24 h, and 12 credits per job.
-- **Ground truth for F1–F3 and F5 needs a person to watch the video.** None of them has a written recipe I can
-  compare against.
+**Totals:**
+- **Expected:** about $0.052 and 1–3 credits.
+- **Worst case:** $0.153 and 12 credits.
+- **Cumulative spend would be about $0.14 expected.** That's inside the $0.20 development cap and far inside the $20
+  key limit.
+- **Order and stop rule:** F3 → F4 → F2 → F1, one at a time. Before F1, check that actual spend plus F1's worst
+  case ($0.0905) stays ≤ $0.20; otherwise ask first.
+- The app's caps also apply: $0.12 per call, $1 per 24 h, 12 credits per job.
+
+**F4: why there's no link yet.**
+- **What "confirm" means here:** before proposing a Reel, I wanted to see that it really is a recipe Reel, by
+  seeing its caption (or the creator's written recipe for it).
+- **There are only two ways to see a Reel's caption:**
+  - **Read Instagram itself** (the Reel page, or its public embed page). That's the kind of direct Instagram
+    access our constraints doc says we have no permission for, so I didn't do it without asking.
+  - **Use Supadata's metadata lookup.** It costs 1 credit, and you asked for no paid calls before approval.
+- **The indirect routes didn't give a usable link** (checked 2026-11-22):
+  - Creator blogs: Busy in Brooklyn's "Instagram Reel Recipes" posts, plus Cooking with Ayeh, Feel Good Foodie,
+    Half Baked Harvest, RecipeTin Eats and Le Creme de la Crumb (10 recent posts each). No `/reel/` links in the
+    page HTML.
+  - News articles about viral recipe creators: they embed TikToks.
+  - A food roundup that embeds Instagram: only 2016–2018 photo posts, not Reels.
+  - Web search: Instagram profiles only; captions of individual Reels aren't indexed.
+- **So no Reel has been checked or chosen.** Options:
+  1. **You send a Reel link** you've seen is a recipe from a creator other than @themodernnonna. This is the
+     fastest, and confirming it costs nothing.
+  2. **Approve 1 Supadata credit** to read a candidate's caption before the AI call. This still needs a candidate
+     link (from you or option 3).
+  3. **Approve me reading Instagram's public embed page** for a creator, to pick a candidate. It's free, but it
+     is direct Instagram access, so it's your call.
+
+**What will be kept for each run:**
+- in `docs/eval/<id>/`: source URL; raw model answer; normalized recipe JSON; the `jobs` row and
+  `processing_runs` rows (path, latency, tokens, cost, credits);
+- the Cook Mode check output;
+- a real-output fixture in `tests/fixtures/live/`.
+
+**How each observation will be labelled:**
+- **Written reference:** compared with the creator's own text (description, caption or recipe page).
+- **Manually verified:** you or another person watched the video and checked a specific claim. I can't watch
+  videos, so these only appear when you provide them.
+- **Unverified:** everything else, including all speech, on-screen and visual claims for F1 and F2.
 
 ## Limitations of this evaluation
 - Small sample: 10 links, 4 creators, all in English or Hindi.
