@@ -90,7 +90,7 @@ Not read: the Instagram Terms of Use and the "Meta oEmbed Read" feature page.
 - Ingredient lists are largely factual, but the method text is the creator's expression. We show a normalized
   recipe with clear credit and a prominent link to the original, and never republish whole pages. **Open:**
   confirm this is acceptable for a public launch.
-- Bot user agent: `ReelishBot/0.1`. **Open:** add a contact URL before launch.
+- Bot user agent: `ReelishBot/0.1; +https://deepclean.app/reelish` (contact URL added for launch).
 
 ## Display
 

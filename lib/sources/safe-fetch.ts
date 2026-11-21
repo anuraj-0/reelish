@@ -16,7 +16,7 @@ import zlib from "node:zlib";
  *   per-request timeout.
  */
 
-export const USER_AGENT = "Mozilla/5.0 (compatible; ReelishBot/0.1; reads recipe metadata from links in video descriptions)";
+export const USER_AGENT = "Mozilla/5.0 (compatible; ReelishBot/0.1; +https://deepclean.app/reelish; reads recipe metadata from links in video descriptions)";
 export const ROBOTS_TOKEN = "reelishbot";
 
 export type FetchFailure =
