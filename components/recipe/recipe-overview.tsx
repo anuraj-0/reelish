@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ChefHat, Clock, ExternalLink, Info, Play, RotateCcw, Users } from "lucide-react";
+import { ArrowLeft, ChefHat, CircleCheck, Clock, ExternalLink, Info, ListOrdered, Play, RotateCcw, ShoppingBasket, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -31,7 +31,10 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
     recipe.prepTime && { icon: Clock, label: "Prep", value: formatMinutes(recipe.prepTime) },
     recipe.cookTime && { icon: Clock, label: "Cook", value: formatMinutes(recipe.cookTime) },
     recipe.totalTime && { icon: Clock, label: "Total", value: formatMinutes(recipe.totalTime) },
+    { icon: ShoppingBasket, label: "Ingredients", value: String(recipe.ingredients.length) },
+    { icon: ListOrdered, label: "Steps", value: String(recipe.steps.length) },
   ].filter(Boolean) as { icon: typeof Clock; label: string; value: string }[];
+  const noTimes = !recipe.servings && !recipe.prepTime && !recipe.cookTime && !recipe.totalTime;
 
   return (
     <>
@@ -56,7 +59,7 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
               href={recipe.source.url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="group relative block aspect-video overflow-hidden rounded-2xl bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="group relative block aspect-[2/1] overflow-hidden rounded-2xl bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:aspect-video"
             >
               <Image src={recipe.source.thumbnailUrl} alt={`Still from the video "${recipe.title}"`} fill sizes="(max-width: 672px) 100vw, 672px" className="object-cover" priority />
               <span className="absolute inset-0 grid place-items-center bg-black/10 transition-colors group-hover:bg-black/20">
@@ -75,8 +78,8 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
             </p>
             <h1 className="text-[2rem] leading-tight font-semibold tracking-tight sm:text-4xl">{recipe.title}</h1>
           </div>
-          {facts.length ? (
-            <dl className="flex flex-wrap gap-x-6 gap-y-2">
+          <div className="space-y-2">
+            <dl className="flex flex-wrap gap-x-5 gap-y-2">
               {facts.map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-2">
                   <Icon className="size-4 text-muted-foreground" aria-hidden />
@@ -85,9 +88,14 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
                 </div>
               ))}
             </dl>
-          ) : (
-            <p className="text-sm text-muted-foreground">Servings and cooking times weren&apos;t given.</p>
-          )}
+            {noTimes ? <p className="text-sm text-muted-foreground">Servings and cooking times weren&apos;t given.</p> : null}
+            {missing === 0 ? (
+              <p className="flex items-center gap-1.5 text-sm font-medium text-confirmed">
+                <CircleCheck className="size-4" aria-hidden />
+                {view.ingredients.some((i) => i.optional && !i.displayQuantity) ? "All amounts given, except optional extras" : "All amounts given by the creator"}
+              </p>
+            ) : null}
+          </div>
         </header>
 
         {missing > 0 ? (
