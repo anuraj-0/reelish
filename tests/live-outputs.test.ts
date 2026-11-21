@@ -6,7 +6,10 @@ import { meaningfulCaption, renderTranscript } from "@/lib/pipeline/instagram";
 import { normalizeRecipe } from "@/lib/pipeline/normalize";
 import { LlmRecipe } from "@/lib/pipeline/prompt";
 import { quantitiesInStepText } from "@/lib/recipe/consistency";
-import { applyEdits, EMPTY_EDITS } from "@/lib/recipe/edits";
+import { splitStepIngredients } from "@/lib/recipe/cook";
+import { doneCueText } from "@/lib/recipe/cues";
+import { applyEdits, EMPTY_EDITS, type ViewRecipe } from "@/lib/recipe/edits";
+import { isRepeatInterval } from "@/lib/recipe/time";
 import { quantityLabel } from "@/lib/recipe/labels";
 import { renderLinkedRecipe, type LinkedRecipe } from "@/lib/sources/linked-recipe";
 
@@ -126,5 +129,79 @@ describe("real Instagram outputs", () => {
     expect(recipe.steps.every((s) => s.evidence.some((e) => e.source === "video_speech"))).toBe(true);
     const ts = recipe.steps.map((s) => s.videoTimestampSec);
     expect(ts.every((t) => t !== null && t <= 41)).toBe(true);
+  });
+});
+
+/** Cook Mode and wording rules, checked on the real extracted recipes (not synthetic fixtures). */
+describe("cooking rules on real outputs", () => {
+  const views: Record<string, ViewRecipe> = {
+    soup: applyEdits(run("soup").recipe, EMPTY_EDITS),
+    kaju: applyEdits(run("kaju").recipe, EMPTY_EDITS),
+    carbonara: applyEdits(run("carbonara").recipe, EMPTY_EDITS),
+    pasta: applyEdits(runIg("ig-pasta").recipe, EMPTY_EDITS),
+    "ig-soup": applyEdits(runIg("ig-soup").recipe, EMPTY_EDITS),
+    turkey: applyEdits(runIg("ig-turkey").recipe, EMPTY_EDITS),
+    "turkey-transcript": applyEdits(runIg("ig-turkey-transcript").recipe, EMPTY_EDITS),
+  };
+  const names = (xs: { name: string }[]) => xs.map((x) => x.name);
+  const stepWith = (v: ViewRecipe, re: RegExp) => v.steps.findIndex((s) => re.test(s.text));
+
+  it("turkey: '1 5kg' isn't parsed as a number, and the creator's line is shown as written", () => {
+    const turkey = views.turkey.ingredients.find((i) => i.name === "Turkey")!;
+    expect(turkey.quantity).toEqual({ raw: "1 5kg", amount: null, amountMax: null, unit: null });
+    expect(turkey.creatorWording).toBe("1 5kg turkey (11 lbs)");
+    // Clear amounts get no note.
+    expect(views.turkey.ingredients.filter((i) => i.creatorWording !== null).map((i) => i.name)).toEqual(["Turkey"]);
+    expect(Object.values(views).flatMap((v) => v.ingredients.filter((i) => i.creatorWording !== null)).length).toBe(1);
+  });
+
+  it("turkey: 'baste every 40 minutes' is a repeat with no minutes, not a cooking time", () => {
+    const bake = views.turkey.steps[stepWith(views.turkey, /basting every 40/)];
+    expect(bake.duration).toEqual({ raw: "every 40 minutes", minMinutes: null, maxMinutes: null });
+    expect(isRepeatInterval(bake.duration!.raw)).toBe(true);
+    // Real durations elsewhere are untouched.
+    const all = Object.values(views).flatMap((v) => v.steps.map((s) => s.duration).filter((d) => d !== null));
+    expect(all.filter((d) => isRepeatInterval(d!.raw)).map((d) => d!.raw)).toEqual(["every 40 minutes"]);
+  });
+
+  it("every real done-when cue reads as a sentence", () => {
+    const cues = Object.values(views).flatMap((v) => v.steps.flatMap((s) => (s.doneCue ? [doneCueText(s.doneCue)] : [])));
+    expect(cues).toContain("Done when it gets golden");
+    expect(cues).toContain("Done when it comes to room temp");
+    expect(cues.find((c) => /180F/.test(c))).toMatch(/^Done at a reading of 180F/);
+    // No bare verb after "Done when".
+    for (const c of cues) expect(c, c).not.toMatch(/^Done when (get|come|turn|become|reach|start|begin)\b/i);
+  });
+
+  it("Cook Mode never drops an ingredient, and always shows ones first used in the step", () => {
+    for (const [name, v] of Object.entries(views)) {
+      v.steps.forEach((step, i) => {
+        const { now, earlier } = splitStepIngredients(v.steps, i);
+        expect([...now, ...earlier].map((x) => x.id).sort(), `${name} step ${i + 1}`).toEqual(step.ingredients.map((x) => x.id).sort());
+        const before = new Set(v.steps.slice(0, i).flatMap((s) => s.ingredientIds));
+        for (const ing of step.ingredients) if (!before.has(ing.id)) expect(names(now), `${name} step ${i + 1}`).toContain(ing.name);
+      });
+    }
+  });
+
+  it("pasta salad: 'toss in the crispy pasta' shows the pasta, not all 12 amounts again", () => {
+    const toss = splitStepIngredients(views.pasta.steps, stepWith(views.pasta, /^Toss in the crispy pasta/));
+    expect(names(toss.now)).toEqual(["Pasta shells"]);
+    expect(toss.earlier).toHaveLength(11);
+    // Assembling: the vegetables are new; the dressing was measured in the step before.
+    const assemble = splitStepIngredients(views.pasta.steps, stepWith(views.pasta, /^Add the diced romaine/));
+    expect(names(assemble.now)).toEqual(["Romaine", "English cucumber", "Cherry tomatoes", "Kalamata olives", "Pepperoncini"]);
+    expect(names(assemble.earlier)).toEqual(["Plain yogurt", "Honey Dijon mustard", "White balsamic vinegar", "Salt"]);
+  });
+
+  it("reused ingredients stay visible when the step needs them again", () => {
+    const k = views.kaju;
+    expect(names(splitStepIngredients(k.steps, stepWith(k, /^Roll the shaped pieces in sugar/)).now)).toEqual(["Sugar"]);
+    const c = views.carbonara;
+    expect(names(splitStepIngredients(c.steps, stepWith(c, /^Garnish with grated parmesan and pepper/)).now)).toEqual(["Parmesan", "Pepper"]);
+    const pour = splitStepIngredients(c.steps, stepWith(c, /^Pour the egg and cheese sauce/));
+    expect(names(pour.now)).toEqual(["Eggs", "Egg yolk"]);
+    const t = views.turkey;
+    expect(names(splitStepIngredients(t.steps, stepWith(t, /^Massage the turkey/)).now)).toEqual(["Turkey", "Unsalted butter"]);
   });
 });

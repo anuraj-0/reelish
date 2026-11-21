@@ -1,0 +1,117 @@
+{
+ "_note": "Real Supadata details, the creator's linked recipe (JSON-LD) and Gemini answer (via OpenRouter, 2026-11-21) for the turkey Reel as published, copied from the M3 run's cache; used to test the normaliser and Cook Mode rules offline.",
+ "details": {
+  "shortcode": "DPeUV0GjQnF",
+  "caption": "🦃 Comment “recipe” and I’ll send it! Canadian thanksgiving is NEXT Monday so you need to make my Juiciest FOOLPROOF Turkey ever. My recipe also happens to be the top searched and loved recipe on Google year after year so I know you’ll love it. \n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\nhttps://themodernnonna.com/easy-thanksgiving-turkey/",
+  "creatorName": "Snejana Andreeva",
+  "creatorHandle": "themodernnonna",
+  "durationSec": 40.704582,
+  "isVideo": true
+ },
+ "linkedRecipe": {
+  "url": "https://themodernnonna.com/easy-thanksgiving-turkey/",
+  "name": "Easy Thanksgiving Turkey",
+  "yield": "8",
+  "prepTime": "30 minutes",
+  "cookTime": "4 hours",
+  "totalTime": "5 hours",
+  "ingredients": [
+   "1 5kg turkey (11 lbs )",
+   "2 sticks butter (unsalted)",
+   "1/2 tablespoon paprika",
+   "3 teaspoons salt (to taste )",
+   "1 tablespoon dry oregano",
+   "1/2 tablespoon garlic powder (optional)",
+   "1 orange (washed )",
+   "3 cups water (for the bottom of the roasting dish)",
+   "1 cup beer (white wine or broth will work as well)",
+   "1 stick butter (unsalted)",
+   "1/3 cup beer ((or white wine) optional)"
+  ],
+  "instructions": [
+   {
+    "section": "The Compound Butter",
+    "text": "Leave the butter on the counter the night before to soften. Once the butter is soft, mix in the seasonings of choice. Feel free to add herbs like thyme or sage as well. Set aside and work on the turkey."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Take the thawed turkey out of the fridge. Mine thawed in the fridge for 4 days."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Take it out of the package and drain it from any liquids. Remove the giblets (if any) mine didn't come with any this year but be sure to check in the cavity or under the neck at the back."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Pat it dry really well with a paper towel and let it come to room temp for at least one hour."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Preheat the oven to 325F (mine was at 350F) as my oven is slow."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Put the turkey on the rack in the roasting dish."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Massage the turkey all over with the seasoned butter."
+   },
+   {
+    "section": "The Turkey",
+    "text": "NOTE: If the turkey is cold and not at room temp, the butter will solidify and be hard to spread so keep that in mind."
+   },
+   {
+    "section": "The Turkey",
+    "text": "I like to butter the top, inside the cavity, and I gently loosen up the skin under the breasts and add some in there as well. You don't need to add any under the skin if it's intimidating for you."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Once the turkey is buttered, add a whole orange in the cavity."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Tuck the wings under so they don't burn (you can tuck them under the rack) and tie the legs with butchers twine."
+   },
+   {
+    "section": "The Turkey",
+    "text": "Pour in the 3 cups of water and 1 cup beer (or wine) to the bottom of the baking dish."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "In a separate pot on the stove, melt a stick of butter. Add a touch of beer (or wine) and soak the cheesecloth in this goodness."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "When the cheesecloth is cool enough to handle, place it on top of the turkey making sure to cover it."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "Place the turkey in a preheated 325F oven and bake making sure to baste every 40 minutes. Basting is optional but ensures a juicy bird."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "Note: The most reliable way to see if your turkey is thoroughly cooked is by using a meat thermometer. A reading of 180F in the breast and 170F in the thigh means you’re ready to serve the turkey. Some birds come with a pop-up thermometer that pops when it has finished cooking."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "Take off the cheesecloth 30-45minutes before the Turkey is done. I lift it up with cooking tongs, baste it and let it get golden for the rest of the time."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "When the turkey has a reading of 180F in the breast and 170F in the thigh means you’re ready to serve the turkey."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "Take it out of the oven and let is rest for a minimum of 30 minutes."
+   },
+   {
+    "section": "Cheesecloth Method",
+    "text": "I like to carve it and soak it in the extra juices from the pan. Enjoy!"
+   }
+  ],
+  "embedsVideo": true
+ },
+ "transcript": null,
+ "modelContent": "{\n  \"is_recipe\": true,\n  \"title\": \"Easy Thanksgiving Turkey\",\n  \"servings\": {\n    \"text\": \"8\",\n    \"sources\": [\n      \"linked_recipe\"\n    ]\n  },\n  \"prep_time\": {\n    \"text\": \"30 minutes\",\n    \"sources\": [\n      \"linked_recipe\"\n    ]\n  },\n  \"cook_time\": {\n    \"text\": \"4 hours\",\n    \"sources\": [\n      \"linked_recipe\"\n    ]\n  },\n  \"total_time\": {\n    \"text\": \"5 hours\",\n    \"sources\": [\n      \"linked_recipe\"\n    ]\n  },\n  \"ingredients\": [\n    {\n      \"id\": \"turkey\",\n      \"name\": \"turkey\",\n      \"group\": null,\n      \"quantity\": \"1 5kg\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1 5kg turkey (11 lbs )\",\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"unsalted-butter-compound\",\n      \"name\": \"unsalted butter\",\n      \"group\": null,\n      \"quantity\": \"2 sticks\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"2 sticks butter (unsalted)\",\n      \"preparation\": \"softened\",\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"paprika\",\n      \"name\": \"paprika\",\n      \"group\": null,\n      \"quantity\": \"1/2 tablespoon\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1/2 tablespoon paprika\",\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"salt\",\n      \"name\": \"salt\",\n      \"group\": null,\n      \"quantity\": \"3 teaspoons\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"3 teaspoons salt (to taste )\",\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"dry-oregano\",\n      \"name\": \"dry oregano\",\n      \"group\": null,\n      \"quantity\": \"1 tablespoon\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1 tablespoon dry oregano\",\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"garlic-powder\",\n      \"name\": \"garlic powder\",\n      \"group\": null,\n      \"quantity\": \"1/2 tablespoon\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1/2 tablespoon garlic powder (optional)\",\n      \"preparation\": null,\n      \"optional\": true,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"orange\",\n      \"name\": \"orange\",\n      \"group\": null,\n      \"quantity\": \"1\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1 orange (washed )\",\n      \"preparation\": \"washed\",\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"water\",\n      \"name\": \"water\",\n      \"group\": null,\n      \"quantity\": \"3 cups\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"3 cups water (for the bottom of the roasting dish)\",\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"beer\",\n      \"name\": \"beer\",\n      \"group\": null,\n      \"quantity\": \"1 cup\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1 cup beer (white wine or broth will work as well)\",\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"unsalted-butter-cheesecloth\",\n      \"name\": \"unsalted butter\",\n      \"group\": null,\n      \"quantity\": \"1 stick\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1 stick butter (unsalted)\",\n      \"preparation\": \"melted\",\n      \"optional\": false,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"id\": \"beer-cheesecloth\",\n      \"name\": \"beer\",\n      \"group\": null,\n      \"quantity\": \"1/3 cup\",\n      \"quantity_source\": \"linked_recipe\",\n      \"quantity_quote\": \"1/3 cup beer ((or white wine) optional)\",\n      \"preparation\": null,\n      \"optional\": true,\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    }\n  ],\n  \"steps\": [\n    {\n      \"text\": \"Leave the butter on the counter the night before to soften. Once soft, mix in the seasonings of choice.\",\n      \"ingredient_ids\": [\n        \"unsalted-butter-compound\",\n        \"paprika\",\n        \"salt\",\n        \"dry-oregano\",\n        \"garlic-powder\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": \"the butter is soft\",\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Leave the butter on the counter the night before to soften. Once the butter is soft, mix in the seasonings of choice.\"\n    },\n    {\n      \"text\": \"Take the thawed turkey out of the fridge, remove from the package, drain any liquids, and remove any giblets from the cavity or under the neck.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Take the thawed turkey out of the fridge... Take it out of the package and drain it from any liquids. Remove the giblets\"\n    },\n    {\n      \"text\": \"Pat the turkey dry really well with a paper towel and let it come to room temperature for at least one hour.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": \"at least one hour\",\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": \"come to room temp\",\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Pat it dry really well with a paper towel and let it come to room temp for at least one hour.\"\n    },\n    {\n      \"text\": \"Preheat the oven.\",\n      \"ingredient_ids\": [],\n      \"duration\": null,\n      \"temperature\": \"325F\",\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Preheat the oven to 325F (mine was at 350F) as my oven is slow.\"\n    },\n    {\n      \"text\": \"Put the turkey on the rack in the roasting dish.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Put the turkey on the rack in the roasting dish.\"\n    },\n    {\n      \"text\": \"Massage the turkey all over with the seasoned butter, including the top, inside the cavity, and under the skin of the breasts.\",\n      \"ingredient_ids\": [\n        \"turkey\",\n        \"unsalted-butter-compound\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Massage the turkey all over with the seasoned butter... butter the top, inside the cavity, and I gently loosen up the skin under the breasts and add some in there as well.\"\n    },\n    {\n      \"text\": \"Add a whole orange into the cavity.\",\n      \"ingredient_ids\": [\n        \"turkey\",\n        \"orange\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Once the turkey is buttered, add a whole orange in the cavity.\"\n    },\n    {\n      \"text\": \"Tuck the wings under and tie the legs with butchers twine.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Tuck the wings under so they don't burn (you can tuck them under the rack) and tie the legs with butchers twine.\"\n    },\n    {\n      \"text\": \"Pour water and beer (or wine) to the bottom of the baking dish.\",\n      \"ingredient_ids\": [\n        \"water\",\n        \"beer\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Pour in the 3 cups of water and 1 cup beer (or wine) to the bottom of the baking dish.\"\n    },\n    {\n      \"text\": \"Melt butter in a separate pot on the stove, add a touch of beer (or wine), and soak the cheesecloth in the mixture.\",\n      \"ingredient_ids\": [\n        \"unsalted-butter-cheesecloth\",\n        \"beer-cheesecloth\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"In a separate pot on the stove, melt a stick of butter. Add a touch of beer (or wine) and soak the cheesecloth in this goodness.\"\n    },\n    {\n      \"text\": \"When the cheesecloth is cool enough to handle, place it on top of the turkey to cover it.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": \"cool enough to handle\",\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"When the cheesecloth is cool enough to handle, place it on top of the turkey making sure to cover it.\"\n    },\n    {\n      \"text\": \"Place the turkey in the oven and bake, basting every 40 minutes.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": \"every 40 minutes\",\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Place the turkey in a preheated 325F oven and bake making sure to baste every 40 minutes.\"\n    },\n    {\n      \"text\": \"Take off the cheesecloth, baste, and let the turkey get golden.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": \"30-45 minutes\",\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": \"get golden\",\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"Take off the cheesecloth 30-45minutes before the Turkey is done. I lift it up with cooking tongs, baste it and let it get golden for the rest of the time.\"\n    },\n    {\n      \"text\": \"Remove the turkey from the oven when a meat thermometer reads 180F in the breast and 170F in the thigh.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": \"180F in the breast and 170F in the thigh\",\n      \"heat\": null,\n      \"done_cue\": \"reading of 180F in the breast and 170F in the thigh\",\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"When the turkey has a reading of 180F in the breast and 170F in the thigh means you’re ready to serve the turkey. Take it out of the oven\"\n    },\n    {\n      \"text\": \"Let the turkey rest.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": \"minimum of 30 minutes\",\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"let is rest for a minimum of 30 minutes.\"\n    },\n    {\n      \"text\": \"Carve the turkey and soak it in the extra juices from the pan.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": null,\n      \"sources\": [\n        \"linked_recipe\"\n      ],\n      \"quote\": \"I like to carve it and soak it in the extra juices from the pan.\"\n    }\n  ],\n  \"notes\": [\n    {\n      \"text\": \"Feel free to add herbs like thyme or sage to the compound butter.\",\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"text\": \"If the turkey is cold and not at room temp, the butter will solidify and be hard to spread.\",\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"text\": \"White wine or broth can be used as a substitute for beer.\",\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    },\n    {\n      \"text\": \"Basting is optional but ensures a juicy bird.\",\n      \"sources\": [\n        \"linked_recipe\"\n      ]\n    }\n  ],\n  \"conflicts\": [],\n  \"gaps\": []\n}"
+}

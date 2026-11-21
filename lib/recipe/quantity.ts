@@ -41,6 +41,7 @@ function toNumber(token: string): number | null {
 export function parseQuantity(input: string): Quantity | null {
   const raw = input.trim().replace(/\s+/g, " ");
   if (!raw) return null;
+  if (isAmbiguousQuantity(raw)) return { raw, amount: null, amountMax: null, unit: null };
   const m = raw.match(LEADING);
   if (!m) return { raw, amount: null, amountMax: null, unit: null };
   const amount = toNumber(m[1]);
@@ -50,4 +51,13 @@ export function parseQuantity(input: string): Quantity | null {
   const unit = rest ? (rest.match(/^[^\s(,]+/)?.[0] ?? null) : null;
   if (amount === null) return { raw, amount: null, amountMax: null, unit: null };
   return { raw, amount, amountMax: amountMax && amountMax > amount ? amountMax : null, unit };
+}
+
+/**
+ * Two whole numbers in a row, like the turkey's "1 5kg" or "2 14 oz cans": a count followed by a
+ * size, which reads as "15 kg" at a glance. We don't guess which was meant; the UI shows the
+ * creator's own line instead. Mixed fractions ("1 1/2", "1 ½") are not ambiguous.
+ */
+export function isAmbiguousQuantity(raw: string): boolean {
+  return /^\s*\d+\s+\d+(?:[.,]\d+)?(?!\s*\/|\d)/.test(raw);
 }

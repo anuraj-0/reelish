@@ -62,3 +62,11 @@ export function parseTimestamp(value: string | number | null | undefined): numbe
   if (!m) return null;
   return Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
 }
+
+/**
+ * "every 40 minutes" (basting), "each 10 min": how often to repeat something, not how long a
+ * step takes. Shown as a repeat, never as a cooking time.
+ */
+export function isRepeatInterval(text: string): boolean {
+  return /^\s*(?:every|each)\b/i.test(text) || /\b(?:every|each)\s+(?:\d|few|couple|other)/i.test(text);
+}

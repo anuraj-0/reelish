@@ -1,7 +1,7 @@
 import { stripQuantities, quantitiesInStepText } from "@/lib/recipe/consistency";
 import { parseQuantity } from "@/lib/recipe/quantity";
 import { Recipe, type Evidence, type Ingredient, type QuantityStatus, type SourceKind, type Step } from "@/lib/recipe/schema";
-import { parseDurationText, parseTemperatureText, parseTimestamp } from "@/lib/recipe/time";
+import { isRepeatInterval, parseDurationText, parseTemperatureText, parseTimestamp } from "@/lib/recipe/time";
 import { PipelineError } from "./errors";
 import type { LlmRecipe, LlmSource } from "./prompt";
 
@@ -254,7 +254,8 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
 
     const ingredientIds = [...new Set(step.ingredient_ids.map((ref) => idMap.get(ref)).filter((x): x is string => Boolean(x)))];
     if (ingredientIds.length < step.ingredient_ids.length) warnings.push(`dropped unknown ingredient reference(s) in step ${i + 1}`);
-    const duration = step.duration ? { raw: step.duration, ...parseDurationText(step.duration) } : null;
+    // "every 40 minutes" is how often to repeat (basting), not how long the step takes: no minutes.
+    const duration = step.duration ? { raw: step.duration, ...(isRepeatInterval(step.duration) ? { minMinutes: null, maxMinutes: null } : parseDurationText(step.duration)) } : null;
     const temperature = step.temperature ? { raw: step.temperature, ...parseTemperatureText(step.temperature) } : null;
 
     return {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { quantityLabel, type QuantityLabel } from "./labels";
 import { preparationStepIndex } from "./preparation";
+import { isAmbiguousQuantity } from "./quantity";
 import { Quantity, type Ingredient, type Recipe, type Step } from "./schema";
 
 /**
@@ -21,6 +22,11 @@ export type ViewIngredient = Ingredient & {
   edited: boolean;
   /** The extracted quantity and its label, kept for "revert" and context. */
   original: { quantity: Ingredient["quantity"]; label: Exclude<QuantityLabel, "edited"> };
+  /**
+   * Set when the amount could be misread ("1 5kg"): the creator's own line, shown as written
+   * ("1 5kg turkey (11 lbs)"), or "" when we have no line to show. Null when the amount is clear.
+   */
+  creatorWording: string | null;
 };
 
 export type ViewStep = Step & { ingredients: ViewIngredient[] };
@@ -41,6 +47,7 @@ export function applyEdits(recipe: Recipe, edits: RecipeEdits): ViewRecipe {
       label: override ? "edited" : originalLabel,
       edited: Boolean(override),
       original: { quantity: ing.quantity, label: originalLabel },
+      creatorWording: !override && ing.quantity && isAmbiguousQuantity(ing.quantity.raw) ? creatorLine(ing) : null,
     };
   });
   const byId = new Map(ingredients.map((i) => [i.id, i]));
@@ -56,6 +63,16 @@ export function applyEdits(recipe: Recipe, edits: RecipeEdits): ViewRecipe {
     }),
   }));
   return { ...recipe, ingredients, steps };
+}
+
+/** The creator's line for this ingredient, as written (list bullet and extra spaces removed). */
+function creatorLine(ing: Ingredient): string {
+  const excerpt = ing.evidence.find((e) => e.excerpt)?.excerpt ?? "";
+  return excerpt
+    .replace(/^\s*[-•*]\s*/, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+\)/g, ")")
+    .trim();
 }
 
 export function setQuantity(edits: RecipeEdits, ingredientId: string, quantity: z.infer<typeof Quantity>): RecipeEdits {
