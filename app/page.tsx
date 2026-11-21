@@ -1,7 +1,7 @@
 import { BookOpenCheck, CircleHelp, MonitorSmartphone } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { StartForm, type Example } from "@/components/start-form";
-import { pipelineMode } from "@/lib/env";
+import { instagramLive, pipelineMode } from "@/lib/env";
 import { DEMO_UNAVAILABLE_ID } from "@/lib/jobs/mock";
 
 const EXAMPLES: Example[] = [
@@ -36,9 +36,11 @@ export default function Home() {
           <StartForm
             examples={EXAMPLES}
             note={
-              pipelineMode() === "live"
-                ? "YouTube links are read live. The Instagram examples use saved test recipes until Instagram support arrives."
-                : "This preview runs on saved test recipes. Live processing is switched off."
+              pipelineMode() !== "live"
+                ? "This preview runs on saved test recipes. Live processing is switched off."
+                : instagramLive()
+                  ? "YouTube and Instagram links are read live. The private-video example shows what a failure looks like."
+                  : "YouTube links are read live. The Instagram examples use saved test recipes while Instagram is switched off."
             }
           />
         </div>

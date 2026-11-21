@@ -101,10 +101,30 @@ const slug = (s: string) =>
     .replace(/^-|-$/g, "")
     .slice(0, 40) || "item";
 
+/** Instructions aren't doneness cues: "Done when adjust to taste" reads wrong, so those are dropped. */
+const NOT_A_CUE = /^(adjust|add|serve|season|taste|enjoy|stir|toss|mix|garnish|top|repeat|let|use|max|maximum)\b/i;
+
 function cleanDoneCue(cue: string | null): string | null {
   if (!cue) return null;
   const c = cue.replace(/^(done\s+when|until|when)\s+/i, "").replace(/[.\s]+$/, "").trim();
-  return c || null;
+  return c && !NOT_A_CUE.test(c) ? c : null;
+}
+
+/** "CRISPY PASTA:" → "Crispy pasta" (captions shout their headings). */
+function cleanGroup(group: string | null): string | null {
+  const g = group?.replace(/[:\s]+$/, "").trim();
+  if (!g) return null;
+  const shouted = g === g.toUpperCase() && /[A-Z]/.test(g);
+  return (shouted ? g.charAt(0) + g.slice(1).toLowerCase() : g).slice(0, 60);
+}
+
+/** Drop a preparation that only repeats the name or the amount ("Freshly grated parmesan / freshly grated"). */
+function cleanPreparation(prep: string | null, name: string, quantity: string | null): string | null {
+  const p = prep?.trim();
+  if (!p) return null;
+  const n = normalizeText(p);
+  if (normalizeText(name).includes(n) || (quantity && normalizeText(quantity) === n)) return null;
+  return p.slice(0, 120);
 }
 
 export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): NormalizeResult {
@@ -200,10 +220,10 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
       id,
       // "olive oil" → "Olive oil", matching how ingredient lists are written.
       name: (ing.name.charAt(0).toUpperCase() + ing.name.slice(1)).slice(0, 120),
-      group: ing.group?.slice(0, 60) ?? null,
+      group: cleanGroup(ing.group),
       quantity: status === "missing" ? null : parseQuantity(qty!),
       quantityStatus: status,
-      preparation: ing.preparation?.slice(0, 120) ?? null,
+      preparation: cleanPreparation(ing.preparation, ing.name, qty),
       optional: ing.optional,
       evidence: ev,
     };
@@ -283,7 +303,7 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
   // Missing amounts are already shown on each ingredient; the model tends to repeat them here anyway.
   const gaps = [...new Set(llm.gaps.map((g) => g.trim()).filter((g) => g && !/\b(quantit(y|ies)|amounts?|how much)\b/i.test(g)))]
     .slice(0, 12)
-    .map((g) => g.slice(0, 200));
+    .map((g) => (g.charAt(0).toUpperCase() + g.slice(1)).slice(0, 200));
   if (!steps.length) gaps.unshift("The video doesn't show the cooking steps.");
 
   const complete = steps.length > 0 && ingredients.filter((i) => !i.optional).every((i) => i.quantityStatus !== "missing");

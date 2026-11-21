@@ -1,0 +1,57 @@
+{
+ "_note": "Real Supadata details/transcript and Gemini answer (via OpenRouter, 2026-11-21) for an Instagram Reel; used to test the normaliser offline.",
+ "details": {
+  "shortcode": "DPeUV0GjQnF",
+  "caption": "🦃 Comment “recipe” and I’ll send it! Canadian thanksgiving is NEXT Monday so you need to make my Juiciest FOOLPROOF Turkey ever. My recipe also happens to be the top searched and loved recipe on Google year after year so I know you’ll love it. \n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\nhttps://themodernnonna.com/easy-thanksgiving-turkey/",
+  "creatorName": "Snejana Andreeva",
+  "creatorHandle": "themodernnonna",
+  "durationSec": 40.704582
+ },
+ "linkedRecipe": null,
+ "transcript": {
+  "lang": "en",
+  "segments": [
+   {
+    "startSec": 0,
+    "text": "stop making these mistakes and make turkey like a chef there's a secret to making"
+   },
+   {
+    "startSec": 4,
+    "text": "the juiciest turkey to soften butter add the seasonings give it a good mix make"
+   },
+   {
+    "startSec": 9,
+    "text": "sure the turkey has thawed you pat it dry and you take out the giblets"
+   },
+   {
+    "startSec": 13,
+    "text": "massage it with the butter really well i like to get under the skin and"
+   },
+   {
+    "startSec": 16,
+    "text": "in the crevice in the crevice we also add an orange and tie the legs"
+   },
+   {
+    "startSec": 20,
+    "text": "for the secret we use julia child's method we melt butter with a little bit"
+   },
+   {
+    "startSec": 24,
+    "text": "of beer soak a cheesecloth and put it on top of the turkey to the"
+   },
+   {
+    "startSec": 28,
+    "text": "tray i'm adding some more water and beer and cooking it in the oven making"
+   },
+   {
+    "startSec": 32,
+    "text": "sure to baste. An hour before the turkey is done remove the cheesecloth and continue"
+   },
+   {
+    "startSec": 37,
+    "text": "to cook it until golden. Let it rest and follow for more."
+   }
+  ]
+ },
+ "modelContent": "{\n  \"is_recipe\": true,\n  \"title\": \"Juiciest Foolproof Turkey\",\n  \"servings\": null,\n  \"prep_time\": null,\n  \"cook_time\": null,\n  \"total_time\": null,\n  \"ingredients\": [\n    {\n      \"id\": \"butter\",\n      \"name\": \"Butter\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": \"softened\",\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"seasonings\",\n      \"name\": \"Seasonings\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"turkey\",\n      \"name\": \"Turkey\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": \"thawed, patted dry, giblets removed\",\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"orange\",\n      \"name\": \"Orange\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"butter-for-cheesecloth\",\n      \"name\": \"Butter\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": \"melted\",\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"beer\",\n      \"name\": \"Beer\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"cheesecloth\",\n      \"name\": \"Cheesecloth\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    },\n    {\n      \"id\": \"water\",\n      \"name\": \"Water\",\n      \"group\": null,\n      \"quantity\": null,\n      \"quantity_source\": null,\n      \"quantity_quote\": null,\n      \"preparation\": null,\n      \"optional\": false,\n      \"sources\": [\n        \"video_speech\"\n      ]\n    }\n  ],\n  \"steps\": [\n    {\n      \"text\": \"Soften the butter and add the seasonings, then give it a good mix.\",\n      \"ingredient_ids\": [\n        \"butter\",\n        \"seasonings\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:04\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"to soften butter add the seasonings give it a good mix\"\n    },\n    {\n      \"text\": \"Make sure the turkey has thawed, pat it dry, and take out the giblets.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:09\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"make sure the turkey has thawed you pat it dry and you take out the giblets\"\n    },\n    {\n      \"text\": \"Massage the turkey with the butter really well, getting under the skin and in the crevices.\",\n      \"ingredient_ids\": [\n        \"turkey\",\n        \"butter\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:13\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"massage it with the butter really well i like to get under the skin and in the crevice in the crevice\"\n    },\n    {\n      \"text\": \"Add an orange into the cavity and tie the legs.\",\n      \"ingredient_ids\": [\n        \"orange\",\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:16\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"we also add an orange and tie the legs\"\n    },\n    {\n      \"text\": \"Melt butter with a little bit of beer, soak a cheesecloth in it, and put it on top of the turkey.\",\n      \"ingredient_ids\": [\n        \"butter-for-cheesecloth\",\n        \"beer\",\n        \"cheesecloth\",\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:20\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"we melt butter with a little bit of beer soak a cheesecloth and put it on top of the turkey\"\n    },\n    {\n      \"text\": \"Add more water and beer to the tray and cook it in the oven, making sure to baste.\",\n      \"ingredient_ids\": [\n        \"water\",\n        \"beer\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:28\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"to the tray i'm adding some more water and beer and cooking it in the oven making sure to baste.\"\n    },\n    {\n      \"text\": \"Remove the cheesecloth an hour before the turkey is done and continue to cook it until golden.\",\n      \"ingredient_ids\": [\n        \"cheesecloth\",\n        \"turkey\"\n      ],\n      \"duration\": \"1 hour\",\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": \"golden\",\n      \"video_timestamp\": \"0:32\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"An hour before the turkey is done remove the cheesecloth and continue to cook it until golden.\"\n    },\n    {\n      \"text\": \"Let the turkey rest.\",\n      \"ingredient_ids\": [\n        \"turkey\"\n      ],\n      \"duration\": null,\n      \"temperature\": null,\n      \"heat\": null,\n      \"done_cue\": null,\n      \"video_timestamp\": \"0:37\",\n      \"sources\": [\n        \"video_speech\"\n      ],\n      \"quote\": \"Let it rest\"\n    }\n  ],\n  \"notes\": [],\n  \"conflicts\": [],\n  \"gaps\": [\n    \"oven temperature\",\n    \"ingredient quantities\",\n    \"cooking duration (total time)\"\n  ]\n}"
+}

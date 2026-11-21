@@ -219,3 +219,22 @@ describe("quantityAppearsIn for transcripts", () => {
     expect(quantityAppearsIn("2 tablespoons olive oil\n1 diced yellow onion", "2 tablespoons", "Yellow onion", null)).toBeNull();
   });
 });
+
+describe("display clean-up seen in live Instagram output", () => {
+  it("tidies shouted groups, repeated preparations, instruction-like cues and gap casing", () => {
+    const llm = soupLlm();
+    llm.ingredients[0] = { ...llm.ingredients[0], name: "Freshly grated parmesan", preparation: "freshly grated", group: "CRISPY PASTA:" };
+    llm.ingredients[3] = { ...llm.ingredients[3], preparation: "to taste" }; // salt, quantity "to taste"
+    llm.steps[1].done_cue = "adjust to taste";
+    llm.steps[2].done_cue = "max crunch";
+    llm.gaps = ["servings"];
+    const { recipe } = normalizeRecipe(llm, input());
+    expect(recipe.ingredients[0]).toMatchObject({ group: "Crispy pasta", preparation: null });
+    expect(recipe.ingredients[3].preparation).toBeNull();
+    expect(recipe.steps[1].doneCue).toBeNull();
+    expect(recipe.steps[2].doneCue).toBeNull();
+    expect(recipe.steps[0].doneCue).toBeNull(); // unchanged: soup step 1 had none
+    expect(recipe.gaps).toEqual(["Servings"]);
+    expect(normalizeRecipe(soupLlm(), input()).recipe.steps[2].doneCue).toBe("the veggies are soft");
+  });
+});
