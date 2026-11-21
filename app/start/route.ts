@@ -8,7 +8,9 @@ import { clientHash, startJob } from "@/lib/jobs/service";
 export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const url = form?.get("url");
-  const back = (path: string) => Response.redirect(new URL(path, request.url), 303);
+  // A relative Location: behind Nginx, request.url carries the app's own address (localhost:PORT),
+  // not the public one, so an absolute redirect would send visitors to localhost.
+  const back = (path: string) => new Response(null, { status: 303, headers: { Location: path } });
   if (typeof url !== "string" || url.length > 500) return back("/");
   const result = startJob(url, clientHash(request.headers));
   if (result.body.recipeId) return back(`/r/${result.body.recipeId}`);
