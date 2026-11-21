@@ -171,6 +171,15 @@ test("silent video with no amounts at all", async ({ page }) => {
   await expectAccessible(page);
 });
 
+test("unknown recipe links return a real 404", async ({ page }) => {
+  for (const path of ["/r/yt-does-not-exist", "/r/yt-does-not-exist/cook"]) {
+    const res = await page.goto(path);
+    expect(res?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "We can't find that recipe" })).toBeVisible();
+  }
+  expect((await page.goto("/r/yt-VTR8vxBFGDY"))?.status()).toBe(200);
+});
+
 test("failure states are clear and honest", async ({ page }) => {
   await startExample(page, "A private video");
   await expect(page.getByRole("heading", { name: "We can't open this video" })).toBeVisible({ timeout: 10_000 });
