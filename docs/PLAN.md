@@ -356,6 +356,11 @@ find quantities there either, so the result is `partial`.
 - Video-sourced claims can't be checked automatically. The spike's speech timestamps were within
   about 1 s, but on-screen and visual claims stay unverified.
 
+**Amounts stay out of step text.** Step text must not contain amounts ("add 2 cups broth"); amounts
+live on ingredients so user edits stay consistent everywhere. After normalization,
+`quantitiesInStepText()` must return nothing. Otherwise re-ask the model once, then strip or flag
+the step (added after the M1 UX review).
+
 **Conflicts.** The AI reports them in `conflicts`. On top of that, a deterministic check flags the same
 ingredient with quantities from different sources that differ after unit normalization (e.g. 32 oz vs
 4 cups → equal, no conflict).
