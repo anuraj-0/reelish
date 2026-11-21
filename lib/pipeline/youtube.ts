@@ -77,7 +77,7 @@ async function stageLinkedRecipe(ctx: JobContext, video: YoutubeVideo): Promise<
 
 type ModelOutput = { content: string; llm: LlmRecipe };
 
-function buildParts(job: JobRow, video: YoutubeVideo, description: string | null, linkedText: string | null): ChatPart[] {
+export function buildParts(job: JobRow, video: YoutubeVideo, description: string | null, linkedText: string | null): ChatPart[] {
   const details = [`Title: ${video.title}`, `Channel: ${video.channelTitle}`, `Duration: ${formatTimestamp(video.durationSec)}`].join("\n");
   const blocks = [sourceBlock("VIDEO_DETAILS", details)];
   if (description) blocks.push(sourceBlock("DESCRIPTION", description));

@@ -98,7 +98,9 @@ export function JobProgress({ jobId }: { jobId: string }) {
               ? `${STAGE_LABEL[active.key]}…`
               : job?.status === "queued"
                 ? "Waiting to start…"
-                : "Starting…"}
+                : job?.status === "succeeded"
+                  ? "Done. Opening your recipe…"
+                  : "Starting…"}
         </p>
       </div>
       {job ? <StageList job={job} /> : <div className="h-40" aria-hidden />}

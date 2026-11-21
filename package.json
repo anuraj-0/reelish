@@ -13,7 +13,8 @@
     "check": "npm run lint && npm run typecheck && npm test",
     "test:e2e": "playwright test",
     "worker": "tsx --conditions=react-server --disable-warning=ExperimentalWarning worker/index.ts",
-    "dev:all": "node scripts/dev-all.mjs"
+    "dev:all": "node scripts/dev-all.mjs",
+    "estimate": "tsx --conditions=react-server --disable-warning=ExperimentalWarning scripts/estimate.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

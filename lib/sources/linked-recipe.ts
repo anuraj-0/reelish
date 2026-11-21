@@ -263,9 +263,8 @@ export function robotsAwareTransport(db: Db, base: Transport, signal?: AbortSign
   return async (url, opts) => {
     if (url.pathname !== "/robots.txt") {
       const robots = await robotsFor(url.origin, db, base, signal);
-      if ("unreachable" in robots || !robotsAllows(robots.rules, url.pathname + url.search)) {
-        throw new SafeFetchError("robots_disallowed", `robots.txt disallows ${url.origin}${url.pathname}`);
-      }
+      if ("unreachable" in robots) throw new SafeFetchError("robots_disallowed", `robots.txt unreachable at ${url.origin}; not fetching`);
+      if (!robotsAllows(robots.rules, url.pathname + url.search)) throw new SafeFetchError("robots_disallowed", `robots.txt disallows ${url.origin}${url.pathname}`);
     }
     return base(url, opts);
   };

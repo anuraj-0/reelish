@@ -179,7 +179,8 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
 
     return {
       id,
-      name: ing.name.slice(0, 120),
+      // "olive oil" → "Olive oil", matching how ingredient lists are written.
+      name: (ing.name.charAt(0).toUpperCase() + ing.name.slice(1)).slice(0, 120),
       group: ing.group?.slice(0, 60) ?? null,
       quantity: status === "missing" ? null : parseQuantity(qty!),
       quantityStatus: status,
@@ -260,7 +261,10 @@ export function normalizeRecipe(llm: LlmRecipe, input: NormalizeInput): Normaliz
         alternatives: c.alternatives.filter((a) => available(a.source)).map((a) => ({ value: a.value.slice(0, 100), source: a.source as SourceKind })),
       };
     });
-  const gaps = [...new Set(llm.gaps.map((g) => g.trim()).filter(Boolean))].slice(0, 12).map((g) => g.slice(0, 200));
+  // Missing amounts are already shown on each ingredient; the model tends to repeat them here anyway.
+  const gaps = [...new Set(llm.gaps.map((g) => g.trim()).filter((g) => g && !/\b(quantit(y|ies)|amounts?|how much)\b/i.test(g)))]
+    .slice(0, 12)
+    .map((g) => g.slice(0, 200));
   if (!steps.length) gaps.unshift("The video doesn't show the cooking steps.");
 
   const complete = steps.length > 0 && ingredients.filter((i) => !i.optional).every((i) => i.quantityStatus !== "missing");

@@ -145,6 +145,15 @@ describe("normalizeRecipe", () => {
     expect(recipe.steps[0].ingredientIds).toContain("olive-oil-2");
   });
 
+  it("drops gaps that only repeat missing amounts, and capitalises names", () => {
+    const llm = soupLlm();
+    llm.ingredients[0].name = "olive oil";
+    llm.gaps = ["Exact quantity of spaghetti", "Quantities for cashews are not specified.", "No oven temperature given"];
+    const { recipe } = normalizeRecipe(llm, input());
+    expect(recipe.gaps).toEqual(["No oven temperature given"]);
+    expect(recipe.ingredients[0].name).toBe("Olive oil");
+  });
+
   it("rejects non-recipes", () => {
     const llm = LlmRecipe.parse({ ...soupLlmRaw, is_recipe: false, ingredients: [], steps: [] });
     expect(() => normalizeRecipe(llm, input())).toThrow(PipelineError);
