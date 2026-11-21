@@ -15,7 +15,7 @@ export const STAGE_LABEL: Record<StageKey, string> = {
   normalize: "Writing up your recipe",
 };
 
-export const JobErrorCode = z.enum(["unavailable", "not_a_recipe", "upstream_failed", "preview_only", "too_long"]);
+export const JobErrorCode = z.enum(["unavailable", "not_a_recipe", "upstream_failed", "invalid_output", "limited", "preview_only", "too_long"]);
 export type JobErrorCode = z.infer<typeof JobErrorCode>;
 
 export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string; retry: boolean }> = {
@@ -34,6 +34,16 @@ export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string;
     body: "A service we rely on didn't respond. Trying again usually works.",
     retry: true,
   },
+  invalid_output: {
+    title: "We couldn't write up this recipe",
+    body: "The video was read, but the result didn't pass our checks. Trying again sometimes works.",
+    retry: true,
+  },
+  limited: {
+    title: "Reelish has reached today's processing limit",
+    body: "Recipes you've already opened still work. Please try this video again tomorrow.",
+    retry: false,
+  },
   preview_only: {
     title: "Live processing isn't switched on yet",
     body: "This preview only works with the example videos below. Real YouTube and Instagram links are coming next.",
@@ -50,7 +60,7 @@ export const JobStatus = z.object({
   id: z.string(),
   platform: Platform,
   sourceUrl: z.url(),
-  status: z.enum(["running", "succeeded", "failed"]),
+  status: z.enum(["queued", "running", "succeeded", "failed"]),
   /** Only stages this job will run, with what's actually happened so far. */
   stages: z.array(z.object({ key: StageKey, state: z.enum(["done", "active", "pending", "failed"]) })),
   startedAt: z.iso.datetime(),
@@ -60,3 +70,15 @@ export const JobStatus = z.object({
 export type JobStatus = z.infer<typeof JobStatus>;
 
 export const CreateJobInput = z.object({ url: z.string().max(500) });
+
+/** Why a job couldn't be started at all (shown inline on the start form). */
+export const StartError = z.enum(["rate_limited", "instagram_not_yet"]);
+export type StartError = z.infer<typeof StartError>;
+
+export const START_ERROR_TEXT: Record<StartError, string> = {
+  rate_limited: "You've started a lot of recipes in the last hour. Please wait a bit and try again.",
+  instagram_not_yet: "Instagram links aren't supported yet. For now Reelish reads YouTube videos and Shorts.",
+};
+
+/** POST /api/jobs: either a job to watch, or a recipe that's already been made. */
+export type CreateJobResponse = { jobId: string; recipeId?: undefined } | { recipeId: string; jobId?: undefined };
