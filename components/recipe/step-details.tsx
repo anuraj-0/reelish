@@ -1,4 +1,6 @@
-import { Flame, Thermometer, Timer, CircleCheck } from "lucide-react";
+import { CircleCheck, Flame, Repeat, Thermometer, Timer } from "lucide-react";
+import { doneCueText } from "@/lib/recipe/cues";
+import { isRepeatInterval } from "@/lib/recipe/time";
 import type { Step } from "@/lib/recipe/schema";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +15,14 @@ const HEAT_TEXT: Record<NonNullable<Step["heat"]>, string> = {
 /** Time, temperature, heat and "done when" for a step. Renders nothing if the step has none. */
 export function StepDetails({ step, size = "md" }: { step: Step; size?: "md" | "cook" }) {
   const items: { icon: typeof Timer; text: string; key: string }[] = [];
-  if (step.duration) items.push({ key: "time", icon: Timer, text: step.duration.raw });
+  if (step.duration) {
+    // "every 40 minutes" is a repeat (basting), not a cooking time.
+    const repeat = isRepeatInterval(step.duration.raw);
+    items.push({ key: "time", icon: repeat ? Repeat : Timer, text: repeat ? capitalize(step.duration.raw) : step.duration.raw });
+  }
   if (step.temperature) items.push({ key: "temp", icon: Thermometer, text: step.temperature.raw });
   if (step.heat) items.push({ key: "heat", icon: Flame, text: HEAT_TEXT[step.heat] });
-  if (step.doneCue) items.push({ key: "done", icon: CircleCheck, text: `Done when ${step.doneCue}` });
+  if (step.doneCue) items.push({ key: "done", icon: CircleCheck, text: doneCueText(step.doneCue) });
   if (!items.length) return null;
   return (
     <ul className="flex flex-wrap gap-2">
@@ -35,3 +41,5 @@ export function StepDetails({ step, size = "md" }: { step: Step; size?: "md" | "
     </ul>
   );
 }
+
+const capitalize = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);

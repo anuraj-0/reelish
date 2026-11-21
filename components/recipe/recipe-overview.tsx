@@ -12,6 +12,7 @@ import { applyEdits, missingQuantityCount, requiredIngredientCount, type ViewIng
 import { LABEL_TEXT, SOURCE_TEXT } from "@/lib/recipe/labels";
 import type { Recipe, SourceKind } from "@/lib/recipe/schema";
 import { cn } from "@/lib/utils";
+import { CreatorWording } from "./creator-wording";
 import { QuantityButton } from "./quantity-button";
 import { QuantityDialog } from "./quantity-dialog";
 import { StepDetails } from "./step-details";
@@ -227,6 +228,7 @@ function IngredientRow({ ingredient, checked, onChecked, onEdit }: { ingredient:
           {ingredient.optional ? <span className="font-normal text-muted-foreground"> (optional)</span> : null}
         </span>
         {ingredient.preparation ? <span className={cn("block text-sm text-muted-foreground", checked && "line-through")}>{ingredient.preparation}</span> : null}
+        <CreatorWording ingredient={ingredient} />
       </label>
       <QuantityButton ingredient={ingredient} onEdit={onEdit} />
     </li>

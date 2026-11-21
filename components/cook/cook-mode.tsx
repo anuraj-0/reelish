@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, ExternalLink, Play, Sun, SunDim, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ExternalLink, Play, Sun, SunDim, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QuantityButton } from "@/components/recipe/quantity-button";
+import { CreatorWording } from "@/components/recipe/creator-wording";
 import { QuantityDialog } from "@/components/recipe/quantity-dialog";
 import { StepDetails } from "@/components/recipe/step-details";
 import { StepList, StepsSheet } from "./steps-sheet";
@@ -11,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { useRecipeState } from "@/hooks/use-recipe-state";
 import { useWakeLock, type WakeLockState } from "@/hooks/use-wake-lock";
 import { canSeek, formatTimestamp, PLATFORM_NAME, videoLink } from "@/lib/format";
-import { applyEdits } from "@/lib/recipe/edits";
+import { splitStepIngredients } from "@/lib/recipe/cook";
+import { applyEdits, type ViewIngredient } from "@/lib/recipe/edits";
 import type { Recipe } from "@/lib/recipe/schema";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +23,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
   const total = view.steps.length;
   const index = Math.min(state.step, Math.max(0, total - 1));
   const step = view.steps[index];
+  const { now, earlier } = splitStepIngredients(view.steps, index);
   const finished = state.finished;
   const wake = useWakeLock(!finished);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -94,8 +97,8 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
       }
     >
       <div className="flex-1 space-y-4 pb-6 sm:space-y-7 sm:pt-2 md:flex md:flex-col md:justify-center md:space-y-0 md:gap-8 lg:justify-start lg:pt-6">
-        {/* Scales with the screen: ~24px on a 375px phone, up to 36px on large screens. */}
-        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-medium tracking-tight outline-none md:max-w-[30ch] md:text-[2.6rem] md:leading-[1.2]">
+        {/* Scales with the screen: ~24px on a 375px phone, up to 42px on large screens, less on short ones (1024×768). */}
+        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-medium tracking-tight outline-none md:max-w-[30ch] md:text-[min(2.6rem,4.4dvh)] md:leading-[1.2]">
           <span className="sr-only">
             Step {index + 1} of {total}:{" "}
           </span>
@@ -104,23 +107,26 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
         <StepDetails step={step} size="cook" />
 
-        {step.ingredients.length ? (
+        {now.length ? (
           <section aria-labelledby="need-heading" className="space-y-1.5 sm:space-y-2 md:max-w-xl">
             <h2 id="need-heading" className="font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">
               For this step
             </h2>
-            <ul className="divide-y rounded-2xl border bg-card px-4">
-              {step.ingredients.map((ing) => (
-                <li key={ing.id} className="flex min-h-12 items-center justify-between gap-3 py-1 sm:min-h-16 sm:py-2">
-                  <span className="min-w-0 text-[1.05rem] leading-snug sm:text-lg">
-                    <span className="font-medium">{ing.name}</span>
-                    {ing.preparation ? <span className="text-muted-foreground"> · {ing.preparation}</span> : null}
-                  </span>
-                  <QuantityButton ingredient={ing} size="lg" onEdit={() => setEditingId(ing.id)} />
-                </li>
-              ))}
-            </ul>
+            <IngredientList items={now} onEdit={setEditingId} />
           </section>
+        ) : null}
+
+        {earlier.length ? (
+          // Measured in an earlier step: kept one tap away instead of pushing this step's amounts down.
+          <details key={index} className="group md:max-w-xl">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-xl font-medium text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+              <ChevronDown className="size-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
+              <span className="min-w-0 truncate">
+                Already added ({earlier.length}): {earlier.map((i) => i.name.toLowerCase()).join(", ")}
+              </span>
+            </summary>
+            <IngredientList items={earlier} onEdit={setEditingId} className="mt-1.5" />
+          </details>
         ) : null}
 
         <VideoLink recipe={recipe} at={step.videoTimestampSec} />
@@ -145,6 +151,23 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
       <QuantityDialog ingredient={editing} onOpenChange={(open) => !open && setEditingId(null)} onSave={setQuantity} onRevert={revertQuantity} />
     </Shell>
+  );
+}
+
+function IngredientList({ items, onEdit, className }: { items: ViewIngredient[]; onEdit: (id: string) => void; className?: string }) {
+  return (
+    <ul className={cn("divide-y rounded-2xl border bg-card px-4", className)}>
+      {items.map((ing) => (
+        <li key={ing.id} className="flex min-h-12 items-center justify-between gap-3 py-1 sm:min-h-16 sm:py-2">
+          <span className="min-w-0 text-[1.05rem] leading-snug sm:text-lg">
+            <span className="font-medium">{ing.name}</span>
+            {ing.preparation ? <span className="text-muted-foreground"> · {ing.preparation}</span> : null}
+            <CreatorWording ingredient={ing} />
+          </span>
+          <QuantityButton ingredient={ing} size="lg" onEdit={() => onEdit(ing.id)} />
+        </li>
+      ))}
+    </ul>
   );
 }
 
