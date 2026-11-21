@@ -18,3 +18,11 @@ __pycache__/
 .DS_Store
 *.log
 coverage/
+
+# from create-next-app
+/.pnp
+.pnp.*
+/build
+*.pem
+npm-debug.log*
+.vercel
