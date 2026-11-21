@@ -1,0 +1,9 @@
+[Unit]
+Description=Reelish database backup
+
+[Service]
+Type=oneshot
+User=reelish
+Group=reelish
+Environment=NODE_OPTIONS=--disable-warning=ExperimentalWarning
+ExecStart=/opt/reelish/node/bin/node /opt/reelish/backup.mjs

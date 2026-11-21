@@ -25,5 +25,5 @@ find "$out" \( -name '.env*' -o -name '*.db' -o -name '*.db-wal' -o -name '*.db-
 rm -rf "$out/data"
 echo "$sha" > "$out/REVISION"
 
-tar -C release -czf "$out.tar.gz" "reelish-$sha"
+COPYFILE_DISABLE=1 tar --no-xattrs -C release -czf "$out.tar.gz" "reelish-$sha"
 du -sh "$out" "$out.tar.gz"

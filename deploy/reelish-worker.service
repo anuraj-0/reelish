@@ -1,0 +1,25 @@
+[Unit]
+Description=Reelish background worker
+After=network.target
+
+[Service]
+User=reelish
+Group=reelish
+WorkingDirectory=/opt/reelish/current
+EnvironmentFile=/etc/reelish/env
+Environment=NODE_OPTIONS="--disable-warning=ExperimentalWarning --max-old-space-size=128"
+ExecStart=/opt/reelish/node/bin/node worker.mjs
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+CapabilityBoundingSet=
+ReadWritePaths=/var/lib/reelish
+MemoryMax=200M
+
+[Install]
+WantedBy=multi-user.target

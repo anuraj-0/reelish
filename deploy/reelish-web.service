@@ -1,0 +1,24 @@
+[Unit]
+Description=Reelish web (Next.js standalone, served at /reelish)
+After=network.target
+
+[Service]
+User=reelish
+Group=reelish
+WorkingDirectory=/opt/reelish/current
+EnvironmentFile=/etc/reelish/env
+Environment=PORT=3101 HOSTNAME=127.0.0.1
+Environment=NODE_OPTIONS="--disable-warning=ExperimentalWarning --max-old-space-size=192"
+ExecStart=/opt/reelish/node/bin/node server.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+CapabilityBoundingSet=
+ReadWritePaths=/var/lib/reelish /opt/reelish/releases
+MemoryMax=320M
+
+[Install]
+WantedBy=multi-user.target
