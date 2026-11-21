@@ -7,8 +7,13 @@ import { recipeExists } from "@/lib/jobs/lookup";
  * Rewriting to a path no route matches renders app/not-found.tsx with a 404 status.
  */
 export function proxy(request: NextRequest) {
-  const id = request.nextUrl.pathname.split("/")[2] ?? "";
-  if (!recipeExists(decodeURIComponent(id))) {
+  let id = request.nextUrl.pathname.split("/")[2] ?? "";
+  try {
+    id = decodeURIComponent(id);
+  } catch {
+    id = ""; // malformed escape (e.g. "%E0%A4%A"): not a recipe, so 404 rather than a crash
+  }
+  if (!recipeExists(id)) {
     return NextResponse.rewrite(new URL("/__recipe-not-found", request.url));
   }
 }
