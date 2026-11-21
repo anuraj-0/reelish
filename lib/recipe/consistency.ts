@@ -21,3 +21,16 @@ export function quantitiesInStepText(recipe: Pick<Recipe, "steps">): StepQuantit
     return matches ? [{ stepId: step.id, matches }] : [];
   });
 }
+
+/**
+ * Removes amounts from an instruction: "Add 4 cups of broth" → "Add broth". The normalizer's
+ * last line of defence when the model writes amounts into a step despite being told not to.
+ */
+export function stripQuantities(text: string): string {
+  return text
+    .replace(new RegExp(`(?:\\(\\s*(?:about|approx\\.?|around)?\\s*)?${QUANTITY_IN_TEXT.source}(?:\\s*\\))?(?:\\s+of\\b)?\\s*`, "gi"), "")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
