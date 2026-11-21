@@ -190,3 +190,36 @@ test("failure states are clear and honest", async ({ page }) => {
   await page.goto("/r/nope");
   await expect(page.getByRole("heading", { name: "We can't find that recipe" })).toBeVisible();
 });
+
+test("cook mode: jump to any step from the steps list; progress survives a refresh", async ({ page }) => {
+  await page.goto("/r/yt-VTR8vxBFGDY/cook");
+  await page.getByRole("button", { name: "Steps" }).click();
+  const sheet = page.getByRole("dialog", { name: "All steps" });
+  await expect(sheet.getByRole("button", { name: /^Step 1 \(current\):/ })).toHaveAttribute("aria-current", "step");
+  await expectAccessible(page);
+  await shot(page, "11-cook-steps-sheet");
+  await sheet.getByRole("button", { name: /^Step 5:/ }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByText("Step 5 of 7", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Step 5 of 7", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Lower the heat");
+});
+
+test("small phone: a step's amounts are visible above the controls without scrolling", async ({ browser, baseURL }) => {
+  test.skip(test.info().project.name !== "mobile", "viewport-specific check");
+  const ctx = await browser.newContext({ baseURL, viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  const page = await ctx.newPage();
+  await page.goto("/r/yt-VTR8vxBFGDY/cook");
+  await expect(page.getByText("Step 1 of 7", { exact: true })).toBeVisible();
+  const controlsTop = await page.getByRole("button", { name: "Next", exact: true }).evaluate((el) => el.parentElement!.getBoundingClientRect().top);
+  const rowBottoms = await page
+    .getByRole("region", { name: "For this step" })
+    .getByRole("listitem")
+    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().bottom));
+  const fullyVisible = rowBottoms.filter((b) => b <= controlsTop).length;
+  expect(rowBottoms.length).toBe(5);
+  expect(fullyVisible, `${fullyVisible} of 5 ingredient rows visible above the controls`).toBeGreaterThanOrEqual(4);
+  await page.screenshot({ path: process.env.SCREENSHOT_DIR ? `${process.env.SCREENSHOT_DIR}/se-cook-step1.jpg` : undefined, type: "jpeg", quality: 70 });
+  await ctx.close();
+});
