@@ -1,0 +1,54 @@
+{
+  "id": "gen-1795265228-0wOf2AzBBzUM1amCJlN6",
+  "object": "chat.completion",
+  "created": 1795265228,
+  "model": "google/gemini-3.5-flash-lite",
+  "provider": "Google AI Studio",
+  "system_fingerprint": null,
+  "service_tier": "default",
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "STOP",
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"is_recipe\": true,\n  \"title\": \"Creamy Vegetable Soup\",\n  \"servings\": \"3\",\n  \"servings_source\": \"linked_recipe\",\n  \"ingredients\": [\n    {\n      \"name\": \"olive oil\",\n      \"quantity\": \"2 tablespoons\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"onion\",\n      \"quantity\": \"1\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"carrots\",\n      \"quantity\": \"2\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"celery ribs\",\n      \"quantity\": \"2\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"garlic cloves\",\n      \"quantity\": \"2\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"salt\",\n      \"quantity\": \"to taste\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"pepper\",\n      \"quantity\": \"to taste\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"cauliflower\",\n      \"quantity\": \"5 cups\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"potatoes\",\n      \"quantity\": \"3\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"chicken broth\",\n      \"quantity\": \"4 cups\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_on_screen\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"water\",\n      \"quantity\": \"2 cups\",\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"chives\",\n      \"quantity\": null,\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": \"presentation\"\n    },\n    {\n      \"name\": \"bacon bits\",\n      \"quantity\": null,\n      \"quantity_source\": \"linked_recipe\",\n      \"name_sources\": [\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"component\": \"presentation\"\n    }\n  ],\n  \"steps\": [\n    {\n      \"n\": 1,\n      \"text\": \"Saut\u00e9 the onions, carrots, celery and garlic in a big pot with olive oil for a few minutes.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [\n        \"olive oil\",\n        \"onion\",\n        \"carrots\",\n        \"celery ribs\",\n        \"garlic cloves\"\n      ],\n      \"time_or_temp\": \"a few minutes\",\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:06\"\n    },\n    {\n      \"n\": 2,\n      \"text\": \"Add salt and pepper to taste.\",\n      \"sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [\n        \"salt\",\n        \"pepper\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:10\"\n    },\n    {\n      \"n\": 3,\n      \"text\": \"Add the cauliflower and potatoes.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [\n        \"cauliflower\",\n        \"potatoes\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:11\"\n    },\n    {\n      \"n\": 4,\n      \"text\": \"Add chicken broth and a little bit of water.\",\n      \"sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [\n        \"chicken broth\",\n        \"water\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:14\"\n    },\n    {\n      \"n\": 5,\n      \"text\": \"Semi-cover it and let it go on medium-low heat for about 30 minutes.\",\n      \"sources\": [\n        \"video_speech\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [],\n      \"time_or_temp\": \"30 minutes\",\n      \"doneness_cue\": \"veggies are soft\",\n      \"video_timestamp\": \"00:18\"\n    },\n    {\n      \"n\": 6,\n      \"text\": \"Blend the veggies and the broth together until smooth.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [],\n      \"time_or_temp\": null,\n      \"doneness_cue\": \"smooth\",\n      \"video_timestamp\": \"00:21\"\n    },\n    {\n      \"n\": 7,\n      \"text\": \"Enjoy and serve with bacon bits and chives.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\",\n        \"linked_recipe\"\n      ],\n      \"ingredients_used\": [\n        \"bacon bits\",\n        \"chives\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:24\"\n    }\n  ],\n  \"conflicts\": [\n    \"Video shows a 32 oz (4 cups) carton of Kettle & Fire chicken broth being added, which aligns with the linked recipe's 4 cups.\"\n  ],\n  \"gaps\": []\n}",
+        "refusal": null,
+        "reasoning": null,
+        "reasoning_details": [
+          {
+            "type": "reasoning.encrypted",
+            "data": "Eo4BCosBAWkUfRO9/kb0vCf22ghpDVKOI521CCrD9ls6wuu/E2gr8igT/y/vKtlGwLBkIXq36jtAsddk24WWOrc+Ct32YEUPGECRUpgihsb2UhxUuswEuGh2jnWKbcG+UWdTnmffwRfDM6elsqTX3Eo7jXkAuI5lOsYRp0KODwXbdgaCxhXlzdsp238hFyrEvA==.eyJlbmRwb2ludF9zbHVnIjoiZ29vZ2xlL2dlbWluaS0zLjUtZmxhc2gtbGl0ZS0yMDI2MDcyMXxnb29nbGUtYWktc3R1ZGlvIn0",
+            "format": "google-gemini-v1",
+            "index": 0
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3263,
+    "completion_tokens": 1839,
+    "total_tokens": 5102,
+    "cost": 0.0055764,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 2461
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0055764,
+      "upstream_inference_prompt_cost": 0.0009789,
+      "upstream_inference_completions_cost": 0.0045975
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

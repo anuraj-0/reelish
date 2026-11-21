@@ -1,0 +1,255 @@
+{
+  "is_recipe": true,
+  "title": "Creamy Vegetable Soup",
+  "servings": "3",
+  "servings_source": "linked_recipe",
+  "ingredients": [
+    {
+      "name": "olive oil",
+      "quantity": "2 tablespoons",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "onion",
+      "quantity": "1",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "carrots",
+      "quantity": "2",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "celery ribs",
+      "quantity": "2",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "garlic cloves",
+      "quantity": "2",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "salt",
+      "quantity": "to taste",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "pepper",
+      "quantity": "to taste",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "cauliflower",
+      "quantity": "5 cups",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "potatoes",
+      "quantity": "3",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "chicken broth",
+      "quantity": "4 cups",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_on_screen",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "water",
+      "quantity": "2 cups",
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "component": null
+    },
+    {
+      "name": "chives",
+      "quantity": null,
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": "presentation"
+    },
+    {
+      "name": "bacon bits",
+      "quantity": null,
+      "quantity_source": "linked_recipe",
+      "name_sources": [
+        "video_visual",
+        "linked_recipe"
+      ],
+      "component": "presentation"
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Sauté the onions, carrots, celery and garlic in a big pot with olive oil for a few minutes.",
+      "sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "ingredients_used": [
+        "olive oil",
+        "onion",
+        "carrots",
+        "celery ribs",
+        "garlic cloves"
+      ],
+      "time_or_temp": "a few minutes",
+      "doneness_cue": null,
+      "video_timestamp": "00:06"
+    },
+    {
+      "n": 2,
+      "text": "Add salt and pepper to taste.",
+      "sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "ingredients_used": [
+        "salt",
+        "pepper"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "video_timestamp": "00:10"
+    },
+    {
+      "n": 3,
+      "text": "Add the cauliflower and potatoes.",
+      "sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "ingredients_used": [
+        "cauliflower",
+        "potatoes"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "video_timestamp": "00:11"
+    },
+    {
+      "n": 4,
+      "text": "Add chicken broth and a little bit of water.",
+      "sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "ingredients_used": [
+        "chicken broth",
+        "water"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "video_timestamp": "00:14"
+    },
+    {
+      "n": 5,
+      "text": "Semi-cover it and let it go on medium-low heat for about 30 minutes.",
+      "sources": [
+        "video_speech",
+        "linked_recipe"
+      ],
+      "ingredients_used": [],
+      "time_or_temp": "30 minutes",
+      "doneness_cue": "veggies are soft",
+      "video_timestamp": "00:18"
+    },
+    {
+      "n": 6,
+      "text": "Blend the veggies and the broth together until smooth.",
+      "sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "ingredients_used": [],
+      "time_or_temp": null,
+      "doneness_cue": "smooth",
+      "video_timestamp": "00:21"
+    },
+    {
+      "n": 7,
+      "text": "Enjoy and serve with bacon bits and chives.",
+      "sources": [
+        "video_speech",
+        "video_visual",
+        "linked_recipe"
+      ],
+      "ingredients_used": [
+        "bacon bits",
+        "chives"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "video_timestamp": "00:24"
+    }
+  ],
+  "conflicts": [
+    "Video shows a 32 oz (4 cups) carton of Kettle & Fire chicken broth being added, which aligns with the linked recipe's 4 cups."
+  ],
+  "gaps": []
+}

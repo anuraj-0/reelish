@@ -1,0 +1,54 @@
+{
+  "id": "gen-1795264563-sl6hdO0UnstQKjypCU1H",
+  "object": "chat.completion",
+  "created": 1795264563,
+  "model": "google/gemini-3.5-flash-lite",
+  "provider": "Google AI Studio",
+  "system_fingerprint": null,
+  "service_tier": "default",
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "STOP",
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"is_recipe\": true,\n  \"title\": \"Kaju Katli Phuljhari\",\n  \"servings\": null,\n  \"total_time\": null,\n  \"ingredients\": [\n    {\n      \"name\": \"Kaju (Cashews)\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"component\": null\n    },\n    {\n      \"name\": \"Water\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"component\": null\n    },\n    {\n      \"name\": \"Sugar\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"component\": null\n    },\n    {\n      \"name\": \"Cocoa powder\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"component\": null\n    },\n    {\n      \"name\": \"Edible silver dust\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"component\": null\n    }\n  ],\n  \"steps\": [\n    {\n      \"n\": 1,\n      \"text\": \"Rinse cashews with hot water twice.\",\n      \"ingredients_used\": [\n        \"Kaju (Cashews)\",\n        \"Water\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"timestamp\": \"00:11\"\n    },\n    {\n      \"n\": 2,\n      \"text\": \"Grind the washed cashews into a paste using a mixer.\",\n      \"ingredients_used\": [\n        \"Kaju (Cashews)\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"timestamp\": \"00:17\"\n    },\n    {\n      \"n\": 3,\n      \"text\": \"In a pan, prepare sugar syrup by boiling sugar and water until sticky.\",\n      \"ingredients_used\": [\n        \"Sugar\",\n        \"Water\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": \"sticky substance\",\n      \"timestamp\": \"00:20\"\n    },\n    {\n      \"n\": 4,\n      \"text\": \"Add the ground cashew paste into the sugar syrup and cook while mixing until it forms a dough.\",\n      \"ingredients_used\": [\n        \"Kaju (Cashews)\",\n        \"Sugar\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": \"cashew paste forms dough and comes together in pan\",\n      \"timestamp\": \"00:30\"\n    },\n    {\n      \"n\": 5,\n      \"text\": \"Transfer the mixture to butter paper, add cocoa powder, and knead to combine.\",\n      \"ingredients_used\": [\n        \"Cocoa powder\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"timestamp\": \"00:41\"\n    },\n    {\n      \"n\": 6,\n      \"text\": \"Take small portions of the mixture and shape them into sparkler (phuljhari) sticks using wooden skewers.\",\n      \"ingredients_used\": [],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"timestamp\": \"00:47\"\n    },\n    {\n      \"n\": 7,\n      \"text\": \"Roll the shaped sticks over loose sugar granules.\",\n      \"ingredients_used\": [\n        \"Sugar\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"timestamp\": \"00:54\"\n    },\n    {\n      \"n\": 8,\n      \"text\": \"Paint edible silver dust onto the sticks using a brush.\",\n      \"ingredients_used\": [\n        \"Edible silver dust\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"timestamp\": \"00:58\"\n    }\n  ],\n  \"gaps\": [\n    \"Exact ingredient quantities\",\n    \"Cook times and heat settings\",\n    \"Servings\"\n  ]\n}",
+        "refusal": null,
+        "reasoning": null,
+        "reasoning_details": [
+          {
+            "type": "reasoning.encrypted",
+            "data": "Eo4BCosBAWkUfRNljiM05Evh+txwFZOlJJngmppWZPfHXuNjwNWyDxvVNUDH2EJq+dlGf2zW5RtoeIWQ7GJthGqWjcUWJmw4zEPwjTpY+I++VwkEIrQomGN+Hrp25NsSGf8+WDU1ZFpQvW2CozAL83Yw5M+oGWD0RxeI1yJBVMNkrRSvKauWNJIeQxpA4EnSwA==.eyJlbmRwb2ludF9zbHVnIjoiZ29vZ2xlL2dlbWluaS0zLjUtZmxhc2gtbGl0ZS0yMDI2MDcyMXxnb29nbGUtYWktc3R1ZGlvIn0",
+            "format": "google-gemini-v1",
+            "index": 0
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 8542,
+    "completion_tokens": 992,
+    "total_tokens": 9534,
+    "cost": 0.0050426,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 8280
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0050426,
+      "upstream_inference_prompt_cost": 0.0025626,
+      "upstream_inference_completions_cost": 0.00248
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

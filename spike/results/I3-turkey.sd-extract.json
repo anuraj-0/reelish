@@ -1,0 +1,208 @@
+{
+  "status": "completed",
+  "data": {
+    "recipe_title": "The Juiciest Turkey Recipe",
+    "ingredients": [
+      {
+        "name": "butter",
+        "quantity": null,
+        "source": "speech"
+      },
+      {
+        "name": "seasonings",
+        "quantity": null,
+        "source": "speech"
+      },
+      {
+        "name": "turkey",
+        "quantity": null,
+        "source": "speech"
+      },
+      {
+        "name": "orange",
+        "quantity": "1",
+        "source": "speech"
+      },
+      {
+        "name": "butter",
+        "quantity": null,
+        "source": "speech"
+      },
+      {
+        "name": "beer",
+        "quantity": null,
+        "source": "speech"
+      },
+      {
+        "name": "water",
+        "quantity": null,
+        "source": "speech"
+      },
+      {
+        "name": "beer",
+        "quantity": null,
+        "source": "speech"
+      }
+    ],
+    "cooking_steps": [
+      {
+        "step": "Combine softened butter with seasonings and mix well.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Thaw the turkey, pat it dry, and remove the giblets.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Massage the seasoned butter over the entire turkey, including under the skin and inside the cavity.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Place a whole orange inside the turkey's cavity and tie the legs together.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Melt butter with a small amount of beer in a saucepan.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Soak a cheesecloth in the butter and beer mixture and place it over the turkey.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Add water and more beer to the roasting tray.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Roast the turkey in the oven, basting periodically.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "One hour before the turkey is finished cooking, remove the cheesecloth and continue to roast until golden brown.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      },
+      {
+        "step": "Let the turkey rest before serving.",
+        "temperature": null,
+        "time": null,
+        "heat_level": null
+      }
+    ],
+    "on-screen_text": [
+      "Stop making these mistakes",
+      "and make turkey like a chef.",
+      "There's a secret to making",
+      "the juiciest turkey.",
+      "To soften butter add the",
+      "seasonings.",
+      "Give it a good mix.",
+      "Make sure the turkey has",
+      "thawed.",
+      "You pat it dry and you take",
+      "out the giblets.",
+      "Massage it with the butter",
+      "really well. I like to get",
+      "under the skin",
+      "and in the crevice.",
+      "In the crevice we also add an",
+      "orange and tie the legs.",
+      "For the secret we use Julia",
+      "Child's method we melt butter",
+      "with a little bit of beer.",
+      "Soak a cheesecloth and put it",
+      "on top of the turkey.",
+      "To the tray I'm adding some",
+      "more water in beer and",
+      "cooking it in the oven making",
+      "sure to baste.",
+      "An hour before the turkey is",
+      "done, remove the cheese cloth",
+      "and continue to cook it until",
+      "golden.",
+      "Let it rest and follow for",
+      "more."
+    ]
+  },
+  "schema": {
+    "type": "object",
+    "properties": {
+      "recipe_title": {
+        "type": "string"
+      },
+      "ingredients": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "quantity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "source"
+          ]
+        }
+      },
+      "cooking_steps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "step": {
+              "type": "string"
+            },
+            "temperature": {
+              "type": "string"
+            },
+            "time": {
+              "type": "string"
+            },
+            "heat_level": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "step"
+          ]
+        }
+      },
+      "on-screen_text": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "recipe_title",
+      "ingredients",
+      "cooking_steps",
+      "on-screen_text"
+    ]
+  }
+}

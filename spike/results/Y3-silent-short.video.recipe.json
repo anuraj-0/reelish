@@ -1,0 +1,126 @@
+{
+  "is_recipe": true,
+  "title": "Kaju Katli Phuljhari",
+  "servings": null,
+  "total_time": null,
+  "ingredients": [
+    {
+      "name": "Kaju (Cashews)",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "Water",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "Sugar",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "Cocoa powder",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "Edible silver dust",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Rinse cashews with hot water twice.",
+      "ingredients_used": [
+        "Kaju (Cashews)",
+        "Water"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:11"
+    },
+    {
+      "n": 2,
+      "text": "Grind the washed cashews into a paste using a mixer.",
+      "ingredients_used": [
+        "Kaju (Cashews)"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:17"
+    },
+    {
+      "n": 3,
+      "text": "In a pan, prepare sugar syrup by boiling sugar and water until sticky.",
+      "ingredients_used": [
+        "Sugar",
+        "Water"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": "sticky substance",
+      "timestamp": "00:20"
+    },
+    {
+      "n": 4,
+      "text": "Add the ground cashew paste into the sugar syrup and cook while mixing until it forms a dough.",
+      "ingredients_used": [
+        "Kaju (Cashews)",
+        "Sugar"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": "cashew paste forms dough and comes together in pan",
+      "timestamp": "00:30"
+    },
+    {
+      "n": 5,
+      "text": "Transfer the mixture to butter paper, add cocoa powder, and knead to combine.",
+      "ingredients_used": [
+        "Cocoa powder"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:41"
+    },
+    {
+      "n": 6,
+      "text": "Take small portions of the mixture and shape them into sparkler (phuljhari) sticks using wooden skewers.",
+      "ingredients_used": [],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:47"
+    },
+    {
+      "n": 7,
+      "text": "Roll the shaped sticks over loose sugar granules.",
+      "ingredients_used": [
+        "Sugar"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:54"
+    },
+    {
+      "n": 8,
+      "text": "Paint edible silver dust onto the sticks using a brush.",
+      "ingredients_used": [
+        "Edible silver dust"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:58"
+    }
+  ],
+  "gaps": [
+    "Exact ingredient quantities",
+    "Cook times and heat settings",
+    "Servings"
+  ]
+}

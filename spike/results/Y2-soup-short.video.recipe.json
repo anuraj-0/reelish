@@ -1,0 +1,138 @@
+{
+  "is_recipe": true,
+  "title": "Healthy Creamy Vegetable Soup",
+  "servings": null,
+  "total_time": "35 minutes",
+  "ingredients": [
+    {
+      "name": "onions",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "carrots",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "celery",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "garlic",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "salt",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "pepper",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "cauliflower",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "potatoes",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    },
+    {
+      "name": "chicken broth",
+      "quantity": "32 oz",
+      "quantity_source": "on_screen",
+      "component": null
+    },
+    {
+      "name": "water",
+      "quantity": null,
+      "quantity_source": "missing",
+      "component": null
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Sauté the onions, carrots, celery, and garlic for a few minutes.",
+      "ingredients_used": [
+        "onions",
+        "carrots",
+        "celery",
+        "garlic"
+      ],
+      "time_or_temp": "a few minutes",
+      "doneness_cue": null,
+      "timestamp": "00:06"
+    },
+    {
+      "n": 2,
+      "text": "Add salt and pepper to taste.",
+      "ingredients_used": [
+        "salt",
+        "pepper"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": "to taste",
+      "timestamp": "00:10"
+    },
+    {
+      "n": 3,
+      "text": "Add the cauliflower and potatoes.",
+      "ingredients_used": [
+        "cauliflower",
+        "potatoes"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:11"
+    },
+    {
+      "n": 4,
+      "text": "Top it off with chicken broth and a little bit of water.",
+      "ingredients_used": [
+        "chicken broth",
+        "water"
+      ],
+      "time_or_temp": null,
+      "doneness_cue": null,
+      "timestamp": "00:13"
+    },
+    {
+      "n": 5,
+      "text": "Semi-cover it and let it go on medium-low heat.",
+      "ingredients_used": [],
+      "time_or_temp": "about 30 minutes",
+      "doneness_cue": null,
+      "timestamp": "00:18"
+    },
+    {
+      "n": 6,
+      "text": "Blend the veggies and the broth together until smooth.",
+      "ingredients_used": [],
+      "time_or_temp": null,
+      "doneness_cue": "smooth",
+      "timestamp": "00:21"
+    }
+  ],
+  "gaps": [
+    "Exact quantities for vegetables, salt, pepper, and water",
+    "Cooking fat used for sautéing",
+    "Number of servings",
+    "Pan size"
+  ]
+}

@@ -1,0 +1,9 @@
+{"name": "I1-soup", "kind": "meta", "url": "https://www.instagram.com/reel/DQZd7W8EbPx/", "first_status": 200, "status": 200, "job": false, "latency_s": 5.4, "credits": 1, "error": null, "message": null}
+{"name": "I2-pastasalad", "kind": "meta", "url": "https://www.instagram.com/reel/DWZqrugEacU/", "first_status": 200, "status": 200, "job": false, "latency_s": 4.8, "credits": 1, "error": null, "message": null}
+{"name": "I3-turkey", "kind": "meta", "url": "https://www.instagram.com/reel/DPeUV0GjQnF/", "first_status": 200, "status": 200, "job": false, "latency_s": 10.6, "credits": 1, "error": null, "message": null}
+{"name": "I1-soup", "kind": "transcript", "url": "https://www.instagram.com/reel/DQZd7W8EbPx/", "first_status": 200, "status": 200, "job": false, "latency_s": 22.8, "credits": 2, "error": null, "message": null}
+{"name": "I2-pastasalad", "kind": "transcript", "url": "https://www.instagram.com/reel/DWZqrugEacU/", "first_status": 200, "status": 200, "job": false, "latency_s": 21.8, "credits": 2, "error": null, "message": null}
+{"name": "I3-turkey", "kind": "transcript", "url": "https://www.instagram.com/reel/DPeUV0GjQnF/", "first_status": 200, "status": 200, "job": false, "latency_s": 18.1, "credits": 2, "error": null, "message": null}
+{"name": "Y2-soup-verify", "kind": "transcript", "url": "https://www.youtube.com/shorts/VTR8vxBFGDY", "first_status": 200, "status": 200, "job": false, "latency_s": 3.4, "credits": 1, "error": null, "message": null}
+{"name": "I1-soup", "kind": "extract", "url": "https://www.instagram.com/reel/DQZd7W8EbPx/", "first_status": 202, "status": 200, "job": true, "latency_s": 14.3, "credits": 5, "error": null, "message": null}
+{"name": "I3-turkey", "kind": "extract", "url": "https://www.instagram.com/reel/DPeUV0GjQnF/", "first_status": 202, "status": 200, "job": true, "latency_s": 26.3, "credits": 5, "error": null, "message": null}

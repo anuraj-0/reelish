@@ -1,0 +1,199 @@
+{
+  "status": "completed",
+  "data": {
+    "recipe_title": "Healthy Creamy Soup",
+    "ingredients": [
+      {
+        "name": "oil",
+        "quantity": "touch",
+        "source": "speech"
+      },
+      {
+        "name": "onions",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "carrots",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "celery",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "garlic",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "salt",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "pepper",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "cauliflower",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "potato",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "broth",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "bacon",
+        "quantity": null,
+        "source": null
+      },
+      {
+        "name": "chives",
+        "quantity": null,
+        "source": null
+      }
+    ],
+    "cooking_steps": [
+      {
+        "step": "Add a touch of oil to a pot along with chopped onions, carrots, celery and garlic.",
+        "time": null,
+        "temperature": null,
+        "heat_level": null
+      },
+      {
+        "step": "Saute for a few minutes.",
+        "time": "a few minutes",
+        "temperature": null,
+        "heat_level": null
+      },
+      {
+        "step": "Add salt, pepper, cauliflower, and potato.",
+        "time": null,
+        "temperature": null,
+        "heat_level": null
+      },
+      {
+        "step": "Add broth and bring to a boil.",
+        "time": null,
+        "temperature": null,
+        "heat_level": null
+      },
+      {
+        "step": "Reduce heat and semi-cover until fully cooked.",
+        "time": null,
+        "temperature": null,
+        "heat_level": "reduced"
+      },
+      {
+        "step": "Transfer to a blender and blend until creamy.",
+        "time": null,
+        "temperature": null,
+        "heat_level": null
+      },
+      {
+        "step": "Serve topped with bacon and chives.",
+        "time": null,
+        "temperature": null,
+        "heat_level": null
+      }
+    ],
+    "on-screen_text": [
+      "When Mom and Dad teach you",
+      "how to make the healthiest",
+      "creamy soups without the",
+      "heavy cream, you never look back.",
+      "Let's go.",
+      "To a pot, add a touch of oil",
+      "with onions, carrots, celery,",
+      "and garlic.",
+      "Saute for a few minutes.",
+      "Add the salt and pepper.",
+      "Cauliflower and potato.",
+      "Now add the broth.",
+      "Bring to a boil.",
+      "Reduce the heat and then",
+      "semicover it until it's fully",
+      "cooked.",
+      "Transfer into a blender.",
+      "Blend.",
+      "Enjoy and don't forget,",
+      "follow for more."
+    ]
+  },
+  "schema": {
+    "type": "object",
+    "properties": {
+      "recipe_title": {
+        "type": "string"
+      },
+      "ingredients": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "quantity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "quantity",
+            "source"
+          ]
+        }
+      },
+      "cooking_steps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "step": {
+              "type": "string"
+            },
+            "time": {
+              "type": "string"
+            },
+            "temperature": {
+              "type": "string"
+            },
+            "heat_level": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "step"
+          ]
+        }
+      },
+      "on-screen_text": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "recipe_title",
+      "ingredients",
+      "cooking_steps",
+      "on-screen_text"
+    ]
+  }
+}

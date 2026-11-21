@@ -1,0 +1,54 @@
+{
+  "id": "gen-1795265211-d2Zi1mdcglToAZxilYI9",
+  "object": "chat.completion",
+  "created": 1795265211,
+  "model": "google/gemini-3.5-flash-lite",
+  "provider": "Google AI Studio",
+  "system_fingerprint": null,
+  "service_tier": "default",
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "STOP",
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"is_recipe\": true,\n  \"title\": \"Creamy Vegetable Soup\",\n  \"servings\": null,\n  \"servings_source\": null,\n  \"ingredients\": [\n    {\n      \"name\": \"onions\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"carrots\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"celery\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"garlic\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"salt\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"pepper\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"cauliflower\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"potatoes\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"chicken broth\",\n      \"quantity\": \"32 oz\",\n      \"quantity_source\": \"video_visual\",\n      \"name_sources\": [\n        \"video_visual\"\n      ],\n      \"component\": null\n    },\n    {\n      \"name\": \"water\",\n      \"quantity\": null,\n      \"quantity_source\": \"missing\",\n      \"name_sources\": [\n        \"video_speech\"\n      ],\n      \"component\": null\n    }\n  ],\n  \"steps\": [\n    {\n      \"n\": 1,\n      \"text\": \"Saut\u00e9 the onions, carrots, celery, and garlic for a few minutes.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"ingredients_used\": [\n        \"onions\",\n        \"carrots\",\n        \"celery\",\n        \"garlic\"\n      ],\n      \"time_or_temp\": \"a few minutes\",\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:06\"\n    },\n    {\n      \"n\": 2,\n      \"text\": \"Add salt and pepper to taste.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"ingredients_used\": [\n        \"salt\",\n        \"pepper\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": \"to taste\",\n      \"video_timestamp\": \"00:10\"\n    },\n    {\n      \"n\": 3,\n      \"text\": \"Add the cauliflower and potatoes.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"ingredients_used\": [\n        \"cauliflower\",\n        \"potatoes\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:11\"\n    },\n    {\n      \"n\": 4,\n      \"text\": \"Add chicken broth and a little bit of water.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"ingredients_used\": [\n        \"chicken broth\",\n        \"water\"\n      ],\n      \"time_or_temp\": null,\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:16\"\n    },\n    {\n      \"n\": 5,\n      \"text\": \"Semi-cover it and let it go on medium-low heat for about 30 minutes.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"ingredients_used\": [],\n      \"time_or_temp\": \"about 30 minutes, medium-low heat\",\n      \"doneness_cue\": null,\n      \"video_timestamp\": \"00:18\"\n    },\n    {\n      \"n\": 6,\n      \"text\": \"Blend the veggies and the broth together until smooth.\",\n      \"sources\": [\n        \"video_speech\",\n        \"video_visual\"\n      ],\n      \"ingredients_used\": [],\n      \"time_or_temp\": null,\n      \"doneness_cue\": \"smooth\",\n      \"video_timestamp\": \"00:21\"\n    }\n  ],\n  \"conflicts\": [],\n  \"gaps\": [\n    \"Exact quantities for onions, carrots, celery, garlic, salt, pepper, cauliflower, potatoes, and water are missing.\"\n  ]\n}",
+        "refusal": null,
+        "reasoning": null,
+        "reasoning_details": [
+          {
+            "type": "reasoning.encrypted",
+            "data": "Eo4BCosBAWkUfRO5ZSZG/QUk6905GPhIv+dX+CPifMeQWs1g44eRKYByrhBfX4qC1eXMUZIf06SSHVDZavr3nbfr54ZMEM+qR3F8Z+qj2Tzlw5xk3VOulJGXx1b6dMgX9oyPY9CqJVQX5nRW73U7+bouanXzsjeUMHNWi0Aw6wvnyfsPVB6TmNaEZojP+RbNpA==.eyJlbmRwb2ludF9zbHVnIjoiZ29vZ2xlL2dlbWluaS0zLjUtZmxhc2gtbGl0ZS0yMDI2MDcyMXxnb29nbGUtYWktc3R1ZGlvIn0",
+            "format": "google-gemini-v1",
+            "index": 0
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 2880,
+    "completion_tokens": 1372,
+    "total_tokens": 4252,
+    "cost": 0.004294,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 2461
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.004294,
+      "upstream_inference_prompt_cost": 0.000864,
+      "upstream_inference_completions_cost": 0.00343
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
