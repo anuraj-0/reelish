@@ -17,9 +17,13 @@ export type StartResult = { status: 200 | 202 | 400 | 429; body: Partial<CreateJ
 
 const HOUR_MS = 3_600_000;
 
-/** A visitor's rate-limit bucket: a salted hash of their address, never the address itself. */
+/**
+ * A visitor's rate-limit bucket: a salted hash of their address, never the address itself.
+ * Behind our Nginx, X-Real-IP is the connecting address. In X-Forwarded-For only the last entry
+ * is added by our proxy; earlier entries come from the client and can be forged.
+ */
 export function clientHash(headers: Headers, db: Db = getDb()): string {
-  const forwarded = env().TRUST_PROXY ? (headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headers.get("x-real-ip")) : null;
+  const forwarded = env().TRUST_PROXY ? (headers.get("x-real-ip")?.trim() || headers.get("x-forwarded-for")?.split(",").at(-1)?.trim()) : null;
   // Without a trusted proxy we can't see real addresses, so everyone shares one bucket.
   const ip = forwarded || "direct";
   return createHash("sha256").update(`${getSecretSalt(db)}:${ip}`).digest("hex").slice(0, 24);
