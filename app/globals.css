@@ -103,6 +103,11 @@
   }
 }
 
+/* Soft fade at the bottom of independently scrolling columns, so cut-off content reads as "more below". */
+@utility fade-bottom {
+  mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

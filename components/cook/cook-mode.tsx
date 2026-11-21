@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { QuantityButton } from "@/components/recipe/quantity-button";
 import { QuantityDialog } from "@/components/recipe/quantity-dialog";
 import { StepDetails } from "@/components/recipe/step-details";
-import { StepsSheet } from "./steps-sheet";
+import { StepList, StepsSheet } from "./steps-sheet";
 import { Button } from "@/components/ui/button";
 import { useRecipeState } from "@/hooks/use-recipe-state";
 import { useWakeLock, type WakeLockState } from "@/hooks/use-wake-lock";
@@ -48,7 +48,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
   if (!step) {
     return (
-      <Shell recipe={recipe} wake={wake} progress={null} nav={null}>
+      <Shell recipe={recipe} wake={wake} progress={null} nav={null} rail={null}>
         <p className="text-lg">This recipe has no steps to follow.</p>
       </Shell>
     );
@@ -56,7 +56,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
   if (finished) {
     return (
-      <Shell recipe={recipe} wake={wake} progress={null} nav={null}>
+      <Shell recipe={recipe} wake={wake} progress={null} nav={null} rail={null}>
         <div className="flex flex-1 flex-col justify-center gap-6 py-10">
           <span className="grid size-16 place-items-center rounded-full bg-confirmed/15 text-confirmed">
             <Check className="size-8" aria-hidden />
@@ -79,10 +79,23 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
   }
 
   return (
-    <Shell recipe={recipe} wake={wake} progress={{ index, total }} nav={<StepsSheet steps={view.steps} current={index} onJump={setStep} />}>
-      <div className="flex-1 space-y-4 pb-6 sm:space-y-7 sm:pt-2">
+    <Shell
+      recipe={recipe}
+      wake={wake}
+      progress={{ index, total }}
+      nav={<StepsSheet steps={view.steps} current={index} onJump={setStep} />}
+      rail={
+        <nav aria-labelledby="rail-heading">
+          <h2 id="rail-heading" className="px-3 font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            All steps
+          </h2>
+          <StepList steps={view.steps} current={index} onJump={setStep} className="mt-2" />
+        </nav>
+      }
+    >
+      <div className="flex-1 space-y-4 pb-6 sm:space-y-7 sm:pt-2 md:flex md:flex-col md:justify-center md:space-y-0 md:gap-8 lg:justify-start lg:pt-6">
         {/* Scales with the screen: ~24px on a 375px phone, up to 36px on large screens. */}
-        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-medium tracking-tight outline-none">
+        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-medium tracking-tight outline-none md:max-w-[30ch] md:text-[2.6rem] md:leading-[1.2]">
           <span className="sr-only">
             Step {index + 1} of {total}:{" "}
           </span>
@@ -92,7 +105,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
         <StepDetails step={step} size="cook" />
 
         {step.ingredients.length ? (
-          <section aria-labelledby="need-heading" className="space-y-1.5 sm:space-y-2">
+          <section aria-labelledby="need-heading" className="space-y-1.5 sm:space-y-2 md:max-w-xl">
             <h2 id="need-heading" className="font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">
               For this step
             </h2>
@@ -113,7 +126,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
         <VideoLink recipe={recipe} at={step.videoTimestampSec} />
       </div>
 
-      <div className="sticky bottom-0 -mx-5 flex gap-3 border-t bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="sticky bottom-0 -mx-5 flex gap-3 border-t bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:mx-0 lg:max-w-xl lg:px-0 lg:pb-6">
         <Button size="touch" variant="outline" onClick={goBack} disabled={index === 0} className="w-[38%]">
           <ArrowLeft aria-hidden /> Back
         </Button>
@@ -135,9 +148,9 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
   );
 }
 
-function Shell({ recipe, wake, progress, nav, children }: { recipe: Recipe; wake: WakeLockState; progress: { index: number; total: number } | null; nav: React.ReactNode; children: React.ReactNode }) {
+function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe; wake: WakeLockState; progress: { index: number; total: number } | null; nav: React.ReactNode; rail: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5">
+    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5 lg:max-w-6xl lg:px-10">
       <header className="sticky top-0 z-10 -mx-5 space-y-2.5 bg-background px-5 pt-2 pb-3 sm:space-y-3 sm:pt-3">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="icon" className="size-12 rounded-xl [&_svg:not([class*='size-'])]:size-6">
@@ -172,7 +185,11 @@ function Shell({ recipe, wake, progress, nav, children }: { recipe: Recipe; wake
           </div>
         ) : null}
       </header>
-      <main className="flex flex-1 flex-col">{children}</main>
+      {/* ≥1024px: the active step on the left, a permanent step list on the right. */}
+      <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-14">
+        <main className="flex flex-1 flex-col lg:min-h-[calc(100dvh-6.5rem)]">{children}</main>
+        {rail ? <aside data-scroll-container className="fade-bottom hidden lg:sticky lg:top-28 lg:block lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto lg:pt-6 lg:pb-10">{rail}</aside> : null}
+      </div>
     </div>
   );
 }

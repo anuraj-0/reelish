@@ -193,13 +193,16 @@ test("failure states are clear and honest", async ({ page }) => {
 
 test("cook mode: jump to any step from the steps list; progress survives a refresh", async ({ page }) => {
   await page.goto("/r/yt-VTR8vxBFGDY/cook");
-  await page.getByRole("button", { name: "Steps" }).click();
-  const sheet = page.getByRole("dialog", { name: "All steps" });
-  await expect(sheet.getByRole("button", { name: /^Step 1 \(current\):/ })).toHaveAttribute("aria-current", "step");
+  // Phones: a "Steps" button opens a sheet. Wide screens: the list is always visible beside the step.
+  const wide = test.info().project.name === "desktop";
+  if (wide) await expect(page.getByRole("button", { name: "Steps" })).toBeHidden();
+  else await page.getByRole("button", { name: "Steps" }).click();
+  const list = wide ? page.getByRole("navigation", { name: "All steps" }) : page.getByRole("dialog", { name: "All steps" });
+  await expect(list.getByRole("button", { name: /^Step 1 \(current\):/ })).toHaveAttribute("aria-current", "step");
   await expectAccessible(page);
-  await shot(page, "11-cook-steps-sheet");
-  await sheet.getByRole("button", { name: /^Step 5:/ }).click();
-  await expect(sheet).toBeHidden();
+  await shot(page, wide ? "11-cook-steps-rail" : "11-cook-steps-sheet");
+  await list.getByRole("button", { name: /^Step 5:/ }).click();
+  if (!wide) await expect(list).toBeHidden();
   await expect(page.getByText("Step 5 of 7", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText("Step 5 of 7", { exact: true })).toBeVisible();
@@ -222,4 +225,27 @@ test("small phone: a step's amounts are visible above the controls without scrol
   expect(fullyVisible, `${fullyVisible} of 5 ingredient rows visible above the controls`).toBeGreaterThanOrEqual(4);
   await page.screenshot({ path: process.env.SCREENSHOT_DIR ? `${process.env.SCREENSHOT_DIR}/se-cook-step1.jpg` : undefined, type: "jpeg", quality: 70 });
   await ctx.close();
+});
+
+test("wide screens use two columns; narrower screens keep the single column", async ({ page }) => {
+  const wide = test.info().project.name === "desktop";
+  await page.goto("/r/yt-VTR8vxBFGDY");
+  const ingredients = await page.getByRole("region", { name: "Ingredients" }).boundingBox();
+  const steps = await page.getByRole("region", { name: "Steps" }).boundingBox();
+  if (wide) {
+    expect(steps!.x, "steps sit to the right of ingredients").toBeGreaterThan(ingredients!.x + ingredients!.width);
+    expect(Math.abs(steps!.y - ingredients!.y), "columns start level").toBeLessThan(40);
+    await expect(page.getByRole("link", { name: "Start cooking" })).toBeVisible(); // in the header, not a bottom bar
+  } else {
+    expect(steps!.y, "steps follow ingredients").toBeGreaterThan(ingredients!.y + ingredients!.height);
+  }
+  await page.goto("/r/yt-VTR8vxBFGDY/cook");
+  const rail = page.getByRole("navigation", { name: "All steps" });
+  if (wide) {
+    await expect(rail).toBeVisible();
+    await expect(page.getByRole("button", { name: "Steps" })).toBeHidden();
+  } else {
+    await expect(rail).toBeHidden();
+    await expect(page.getByRole("button", { name: "Steps" })).toBeVisible();
+  }
 });
