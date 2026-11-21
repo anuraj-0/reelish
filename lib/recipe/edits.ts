@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { quantityLabel, type QuantityLabel } from "./labels";
+import { preparationStepIndex } from "./preparation";
 import { Quantity, type Ingredient, type Recipe, type Step } from "./schema";
 
 /**
@@ -43,9 +44,16 @@ export function applyEdits(recipe: Recipe, edits: RecipeEdits): ViewRecipe {
     };
   });
   const byId = new Map(ingredients.map((i) => [i.id, i]));
-  const steps: ViewStep[] = recipe.steps.map((step) => ({
+  const preparedAt = new Map(recipe.ingredients.map((i) => [i.id, preparationStepIndex(i, recipe.steps)]));
+  const steps: ViewStep[] = recipe.steps.map((step, index) => ({
     ...step,
-    ingredients: step.ingredientIds.flatMap((id) => byId.get(id) ?? []),
+    ingredients: step.ingredientIds.flatMap((id) => {
+      const ing = byId.get(id);
+      if (!ing) return [];
+      // Don't show "blended into a paste" before (or in) the step that does the blending.
+      const at = preparedAt.get(id);
+      return at !== null && at !== undefined && index <= at ? [{ ...ing, preparation: null }] : [ing];
+    }),
   }));
   return { ...recipe, ingredients, steps };
 }

@@ -5,6 +5,7 @@ import { parseJsonContent } from "@/lib/llm/openrouter";
 import { normalizeRecipe } from "@/lib/pipeline/normalize";
 import { LlmRecipe } from "@/lib/pipeline/prompt";
 import { quantitiesInStepText } from "@/lib/recipe/consistency";
+import { applyEdits, EMPTY_EDITS } from "@/lib/recipe/edits";
 import { quantityLabel } from "@/lib/recipe/labels";
 import { renderLinkedRecipe, type LinkedRecipe } from "@/lib/sources/linked-recipe";
 
@@ -49,6 +50,12 @@ describe("real model outputs", () => {
     expect(recipe.extraction.status).toBe("partial");
     expect(recipe.ingredients.every((i) => i.quantityStatus === "missing")).toBe(true);
     expect(recipe.steps.length).toBeGreaterThanOrEqual(6);
+    // "Cashews · blended into a paste" must not appear on the "wash the cashews" step.
+    const view = applyEdits(recipe, EMPTY_EDITS);
+    const cashews = (i: number) => view.steps[i].ingredients.find((x) => x.name === "Cashews");
+    expect(cashews(0)?.preparation).toBeNull();
+    const after = view.steps.findIndex((s, i) => i > 1 && s.ingredients.some((x) => x.name === "Cashews"));
+    if (after !== -1) expect(cashews(after)?.preparation).toMatch(/paste/);
   });
 
   it("carbonara long-form, recipe link dead: spoken amounts kept, the rest missing", () => {
