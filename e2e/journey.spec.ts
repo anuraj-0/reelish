@@ -258,3 +258,21 @@ test("wide screens use two columns; narrower screens keep the single column", as
     await expect(page.getByRole("button", { name: "Steps" })).toBeVisible();
   }
 });
+
+test("the start form works without JavaScript (tapped before the page hydrates)", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByLabel("Video link").fill("https://www.youtube.com/shorts/VTR8vxBFGDY");
+  await page.getByRole("button", { name: "Get the recipe" }).click();
+  await expect(page).toHaveURL(/\/jobs\/[0-9a-f-]{36}$/);
+  await context.close();
+});
+
+test("a link pasted before the page finishes loading isn't lost", async ({ page }) => {
+  await page.goto("/", { waitUntil: "commit" });
+  await page.getByLabel("Video link").fill("https://www.youtube.com/shorts/VTR8vxBFGDY");
+  await page.waitForLoadState("networkidle"); // hydration happens after the paste
+  await page.getByRole("button", { name: "Get the recipe" }).click();
+  await expect(page).toHaveURL(/\/jobs\//);
+});

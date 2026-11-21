@@ -2,7 +2,7 @@
 
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { START_ERROR_TEXT, type StartError } from "@/lib/jobs/types";
@@ -24,6 +24,13 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
   const [submitting, setSubmitting] = useState<string | null>(null);
   const inputId = useId();
   const errorId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // A link pasted before the page finished loading is in the field but not in React state yet.
+  useEffect(() => {
+    const typed = inputRef.current?.value;
+    if (typed) setUrl(typed);
+  }, []);
 
   async function start(value: string, source: string) {
     // Validate in the browser first for instant feedback; the server validates again.
@@ -57,11 +64,15 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
 
   return (
     <div className="space-y-8">
+      {/* Works before hydration too (slow phones): the browser posts to /start, which redirects. */}
       <form
+        method="post"
+        action="/start"
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          void start(url, "form");
+          // Read the field itself: it's the truth even if state hasn't caught up (see above).
+          void start(inputRef.current?.value ?? url, "form");
         }}
         className="space-y-2"
       >
@@ -71,6 +82,8 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             id={inputId}
+            ref={inputRef}
+            name="url"
             type="url"
             inputMode="url"
             autoComplete="off"
