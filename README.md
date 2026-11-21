@@ -9,7 +9,9 @@ give are shown as **Not specified**, never guessed, and you can add your own.
 - **Instagram:** Supadata caption → linked recipe → transcript only if needed → one text-only AI call.
 
 See [docs/PLAN.md](docs/PLAN.md), [docs/M2-RESULTS.md](docs/M2-RESULTS.md),
-[docs/M3-RESULTS.md](docs/M3-RESULTS.md) and [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
+[docs/M3-RESULTS.md](docs/M3-RESULTS.md), [docs/M4-EVALUATION.md](docs/M4-EVALUATION.md),
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (draft) and [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
+Submission drafts: [docs/submission/](docs/submission/).
 
 ## Run locally
 
