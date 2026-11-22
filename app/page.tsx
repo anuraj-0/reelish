@@ -1,21 +1,23 @@
 import { BookOpenCheck, CircleHelp, MonitorSmartphone } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { StartForm, type Example } from "@/components/start-form";
+import { thumbnailFor } from "@/lib/format";
 import { instagramLive, pipelineMode } from "@/lib/env";
 
-// Thumbnails are the videos' own YouTube stills. The Instagram reel has none we can show, so its card uses a plain fallback.
+// Thumbnails are the videos' own stills. If Instagram won't serve a reel's, the card shows a plain fallback.
 const yt = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+const ig = (id: string) => thumbnailFor({ platform: "instagram", videoId: id, thumbnailUrl: null });
 
 // The live site shows recipes people have made there. The fixtures preview can only open its saved recipes.
 const FEATURED_LIVE: Example[] = [
   { url: "https://www.youtube.com/watch?v=Mtrg3To4VCg", title: "Dhaba Style Dal Tadka", platform: "YouTube", detail: "Amounts from the creator", thumbnail: yt("Mtrg3To4VCg") },
   { url: "https://www.youtube.com/watch?v=KehYpqc1NTw", title: "Sooji Halwa", platform: "YouTube", detail: "Complete recipe", thumbnail: yt("KehYpqc1NTw") },
-  { url: "https://www.instagram.com/reel/CjwyMyHJtcu/", title: "Paneer Butter Masala", platform: "Instagram", detail: "From a silent reel", thumbnail: null },
+  { url: "https://www.instagram.com/reel/CjwyMyHJtcu/", title: "Paneer Butter Masala", platform: "Instagram", detail: "From a silent reel", thumbnail: ig("CjwyMyHJtcu") },
 ];
 
 const FEATURED_PREVIEW: Example[] = [
   { url: "https://www.youtube.com/shorts/VTR8vxBFGDY", title: "Creamy Vegetable Soup", platform: "YouTube", detail: "Complete recipe", thumbnail: yt("VTR8vxBFGDY") },
-  { url: "https://www.instagram.com/reel/DWZqrugEacU/", title: "Crispy Pasta Salad", platform: "Instagram", detail: "From an Instagram reel", thumbnail: null },
+  { url: "https://www.instagram.com/reel/DWZqrugEacU/", title: "Crispy Pasta Salad", platform: "Instagram", detail: "From an Instagram reel", thumbnail: ig("DWZqrugEacU") },
   { url: "https://www.youtube.com/shorts/s4na199iyag", title: "Kaju Katli Sparklers", platform: "YouTube", detail: "Recipe from a silent video", thumbnail: yt("s4na199iyag") },
 ];
 

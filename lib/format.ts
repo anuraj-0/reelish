@@ -1,3 +1,4 @@
+import { basePath } from "./base-path";
 import type { Platform, Recipe, TimeValue } from "./recipe/schema";
 
 export function formatTimestamp(totalSec: number): string {
@@ -20,6 +21,16 @@ export function videoLink(recipe: Pick<Recipe, "source">, atSec?: number | null)
   const { platform, url } = recipe.source;
   if (platform === "youtube" && atSec != null) return `${url}&t=${Math.floor(atSec)}s`;
   return url;
+}
+
+/**
+ * The video's still. A reel's comes through our own route (app/api/thumb/ig), because Instagram's
+ * picture links expire and browsers won't load them on other sites. That route can fail at any time;
+ * callers fall back to no picture when the image doesn't load.
+ */
+export function thumbnailFor(source: Pick<Recipe["source"], "platform" | "videoId" | "thumbnailUrl">): string | null {
+  if (source.platform === "instagram") return `${basePath}/api/thumb/ig/${encodeURIComponent(source.videoId)}`;
+  return source.thumbnailUrl;
 }
 
 export function canSeek(platform: Platform): boolean {

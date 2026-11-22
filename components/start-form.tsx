@@ -162,6 +162,7 @@ export function StartForm({ featured, trust }: { featured: Example[]; trust: str
  * The frame is always 16:9: YouTube's stills are 4:3 with black bars, and 16:9 crops exactly those bars.
  */
 function ExampleCard({ example: ex, busy, disabled, onStart }: { example: Example; busy: boolean; disabled: boolean; onStart: () => void }) {
+  const [imageFailed, setImageFailed] = useState(false);
   return (
     <button
       type="button"
@@ -173,8 +174,15 @@ function ExampleCard({ example: ex, busy, disabled, onStart }: { example: Exampl
       )}
     >
       <span className="relative block aspect-video w-32 shrink-0 overflow-hidden border-2 border-foreground bg-secondary sm:w-full sm:border-0 sm:border-b-2">
-        {ex.thumbnail ? (
-          <Image src={ex.thumbnail} alt="" fill sizes="(max-width: 639px) 128px, 360px" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+        {ex.thumbnail && !imageFailed ? (
+          <Image
+            src={ex.thumbnail}
+            alt=""
+            fill
+            sizes="(max-width: 639px) 128px, 360px"
+            onError={() => setImageFailed(true)}
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
         ) : (
           <span aria-hidden className="absolute inset-0 grid place-items-center text-muted-foreground group-hover:text-foreground">
             <UtensilsCrossed className="size-7 sm:size-10" strokeWidth={1.5} />

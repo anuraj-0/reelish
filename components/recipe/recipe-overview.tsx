@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRecipeState } from "@/hooks/use-recipe-state";
-import { canSeek, formatMinutes, formatTimestamp, hostname, PLATFORM_NAME, videoLink } from "@/lib/format";
+import { canSeek, formatMinutes, formatTimestamp, hostname, PLATFORM_NAME, thumbnailFor, videoLink } from "@/lib/format";
 import { applyEdits, missingQuantityCount, type ViewIngredient } from "@/lib/recipe/edits";
 import { missingNotice } from "@/lib/recipe/missing";
 import { LABEL_TEXT, SOURCE_TEXT } from "@/lib/recipe/labels";
@@ -22,6 +22,8 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
   const { state, setQuantity, revertQuantity, toggleChecked, clearChecked } = useRecipeState(recipe.id);
   const view = useMemo(() => applyEdits(recipe, state.edits), [recipe, state.edits]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [imageFailed, setImageFailed] = useState(false);
+  const thumbnail = imageFailed ? null : thumbnailFor(recipe.source);
   const editing = view.ingredients.find((i) => i.id === editingId) ?? null;
   const missing = missingQuantityCount(view);
   const notice = missingNotice(view);
@@ -68,14 +70,22 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
         <main>
           {/* A. Overview */}
           <header className="mt-4 space-y-5 lg:mt-8 lg:grid lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-start lg:gap-10 lg:space-y-0">
-            {recipe.source.thumbnailUrl ? (
+            {thumbnail ? (
               <a
                 href={recipe.source.url}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
                 className="group relative block aspect-video overflow-hidden border-2 border-foreground bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <Image src={recipe.source.thumbnailUrl} alt={`Still from the video "${recipe.title}"`} fill sizes="(max-width: 1023px) 672px, 384px" className="object-cover" priority />
+                <Image
+                  src={thumbnail}
+                  alt={`Still from the video "${recipe.title}"`}
+                  fill
+                  sizes="(max-width: 1023px) 672px, 384px"
+                  onError={() => setImageFailed(true)}
+                  className="object-cover"
+                  priority
+                />
                 <span className="absolute inset-0 grid place-items-center bg-black/10 transition-colors group-hover:bg-black/25">
                   <span className="grid size-14 place-items-center border-2 border-foreground bg-accent text-accent-foreground transition-transform group-hover:scale-105">
                     <Play className="ml-0.5 size-6 fill-current" aria-hidden />
@@ -84,7 +94,7 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
                 <span className="sr-only">Watch on {PLATFORM_NAME[recipe.source.platform]}</span>
               </a>
             ) : null}
-            <div className={cn("space-y-4", !recipe.source.thumbnailUrl && "lg:col-span-2 lg:max-w-3xl")}>
+            <div className={cn("space-y-4", !thumbnail && "lg:col-span-2 lg:max-w-3xl")}>
               <div className="space-y-2">
                 <p className="label-mono text-muted-foreground">{creator}</p>
                 <h1 className="text-[2.1rem] leading-[1.04] font-black tracking-[-0.02em] [font-stretch:80%] sm:text-5xl lg:text-[3.25rem]">{recipe.title}</h1>
