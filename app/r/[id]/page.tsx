@@ -28,10 +28,10 @@ export default function RecipePage({ params }: PageProps<"/r/[id]">) {
 function RecipeSkeleton() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-4 px-5 pt-20" aria-busy="true" aria-label="Loading recipe">
-      <Skeleton className="aspect-video w-full rounded-2xl" />
+      <Skeleton className="aspect-video w-full" />
       <Skeleton className="h-9 w-3/4" />
       <Skeleton className="h-5 w-1/2" />
-      <Skeleton className="h-64 w-full rounded-2xl" />
+      <Skeleton className="h-64 w-full" />
     </div>
   );
 }

@@ -29,15 +29,15 @@ export function StepList({ steps, current, onJump, className }: { steps: Step[];
             aria-current={i === current ? "step" : undefined}
             onClick={() => onJump(i)}
             className={cn(
-              "flex w-full gap-3 rounded-xl px-3 py-3 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
-              i === current && "bg-accent hover:bg-accent",
+              "flex w-full gap-3 border-2 border-transparent px-3 py-3 text-left outline-none hover:border-foreground hover:bg-card focus-visible:ring-3 focus-visible:ring-ring",
+              i === current && "border-foreground bg-accent hover:bg-accent",
             )}
           >
             <span
               aria-hidden
               className={cn(
-                "grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums",
-                i === current ? "bg-primary text-primary-foreground" : "bg-secondary",
+                "grid size-7 shrink-0 place-items-center border-2 border-foreground font-mono text-sm font-semibold tabular-nums",
+                i === current ? "bg-foreground text-background" : "bg-card",
                 i < current && "text-muted-foreground",
               )}
             >
@@ -69,7 +69,7 @@ export function StepsSheet({ steps, current, onJump }: { steps: Step[]; current:
       </DialogTrigger>
       <DialogContent className="top-auto bottom-0 max-h-[85dvh] translate-y-0 grid-rows-[auto_1fr] rounded-b-none p-0 sm:top-1/2 sm:bottom-auto sm:max-w-lg sm:-translate-y-1/2 sm:rounded-xl">
         <DialogHeader className="px-5 pt-5 text-left">
-          <DialogTitle className="font-heading text-xl">All steps</DialogTitle>
+          <DialogTitle className="font-heading text-2xl font-black tracking-tight">All steps</DialogTitle>
           <DialogDescription>Tap a step to go to it.</DialogDescription>
         </DialogHeader>
         <StepList

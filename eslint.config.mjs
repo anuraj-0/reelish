@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Release bundles built by scripts/package-release.sh (git-ignored build output).
+    "release/**",
   ]),
 ]);
 

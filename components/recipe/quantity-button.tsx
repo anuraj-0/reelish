@@ -19,7 +19,7 @@ export function QuantityButton({ ingredient, onEdit, size = "md" }: { ingredient
         type="button"
         onClick={onEdit}
         className={cn(
-          "inline-flex shrink-0 items-center gap-1 rounded-full border border-dashed border-missing/40 bg-missing-bg font-medium text-missing outline-none hover:border-missing/70 focus-visible:ring-3 focus-visible:ring-ring/50",
+          "brut-press inline-flex shrink-0 items-center gap-1 border-2 border-foreground bg-missing-bg font-semibold text-missing-ink outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2",
           size === "lg" ? "h-11 px-4 text-base" : "h-9 px-3 text-sm",
         )}
       >
@@ -36,14 +36,14 @@ export function QuantityButton({ ingredient, onEdit, size = "md" }: { ingredient
       type="button"
       onClick={onEdit}
       className={cn(
-        "-my-1 flex shrink-0 flex-col items-end rounded-lg px-2 py-1 text-right outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
+        "-my-1 flex shrink-0 flex-col items-end border-2 border-transparent px-2 py-1 text-right outline-none hover:border-foreground hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring",
         size === "lg" ? "min-h-11" : "min-h-9",
       )}
     >
       <span
         aria-hidden
         className={cn(
-          "font-semibold tabular-nums",
+          "font-extrabold tabular-nums",
           size === "lg" ? "text-lg" : "text-base",
           ingredient.label === "suggested" && "underline decoration-suggested/50 decoration-dotted underline-offset-4",
         )}
@@ -51,7 +51,7 @@ export function QuantityButton({ ingredient, onEdit, size = "md" }: { ingredient
         {q.raw}
       </span>
       {tag ? (
-        <span aria-hidden className={cn("text-xs font-medium", ingredient.label === "edited" ? "text-primary" : "text-suggested")}>
+        <span aria-hidden className={cn("label-mono text-[0.7rem]", ingredient.label === "edited" ? "text-foreground" : "text-suggested")}>
           {tag}
         </span>
       ) : null}

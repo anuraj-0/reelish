@@ -81,10 +81,10 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
         }}
         className="space-y-2"
       >
-        <label htmlFor={inputId} className="text-sm font-medium">
+        <label htmlFor={inputId} className="label-mono block">
           Video link
         </label>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:brut-shadow sm:flex-row sm:gap-0">
           <Input
             id={inputId}
             ref={inputRef}
@@ -102,9 +102,9 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
             }}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorId : undefined}
-            className="h-12 rounded-xl bg-card px-4 text-base md:text-base"
+            className="h-14 px-4 text-base md:text-base sm:border-r-0"
           />
-          <Button type="submit" size="xl" disabled={submitting !== null} className="sm:w-auto">
+          <Button type="submit" size="xl" disabled={submitting !== null} className="h-14 sm:w-auto sm:shadow-none">
             {submitting === "form" ? <Loader2 className="animate-spin" aria-hidden /> : null}
             Get the recipe
             {submitting !== "form" ? <ArrowRight aria-hidden /> : null}
@@ -117,13 +117,13 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
 
       <section aria-labelledby="examples-heading" className="space-y-3">
         <div>
-          <h2 id="examples-heading" className="text-lg font-semibold">
+          <h2 id="examples-heading" className="text-xl font-extrabold">
             Try an example
           </h2>
-          <p className="text-sm text-muted-foreground">{note}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{note}</p>
         </div>
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {examples.map((ex) => (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {examples.map((ex, i) => (
             <li key={ex.url}>
               <button
                 type="button"
@@ -132,18 +132,21 @@ export function StartForm({ examples, note }: { examples: Example[]; note: strin
                   void start(ex.url, ex.url);
                 }}
                 disabled={submitting !== null}
-                className="group flex min-h-16 w-full items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-left transition-colors outline-none hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
+                className="group brut-shadow-sm brut-press flex min-h-18 w-full items-center gap-4 border-2 border-foreground bg-card px-4 py-3 text-left outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60 disabled:shadow-none"
               >
-                <span className="min-w-0">
-                  <span className="block truncate font-medium">{ex.title}</span>
-                  <span className="block text-sm text-muted-foreground">
+                <span aria-hidden className="font-mono text-sm font-semibold text-muted-foreground group-hover:text-foreground">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-bold">{ex.title}</span>
+                  <span className="label-mono mt-0.5 block text-muted-foreground group-hover:text-foreground">
                     {ex.platform} · {ex.detail}
                   </span>
                 </span>
                 {submitting === ex.url ? (
-                  <Loader2 className="size-5 shrink-0 animate-spin text-muted-foreground" aria-label="Starting" />
+                  <Loader2 className="size-5 shrink-0 animate-spin" aria-label="Starting" />
                 ) : (
-                  <ArrowRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  <ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-1" aria-hidden />
                 )}
               </button>
             </li>

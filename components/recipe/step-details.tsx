@@ -30,11 +30,11 @@ export function StepDetails({ step, size = "md" }: { step: Step; size?: "md" | "
         <li
           key={key}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full bg-secondary text-secondary-foreground",
+            "inline-flex items-center gap-1.5 border-2 border-foreground bg-card font-medium text-foreground",
             size === "cook" ? "px-3 py-1.5 text-[0.95rem] sm:px-3.5 sm:py-2 sm:text-base" : "px-2.5 py-1 text-sm",
           )}
         >
-          <Icon className={cn("shrink-0 text-primary", size === "cook" ? "size-4 sm:size-5" : "size-4")} aria-hidden />
+          <Icon className={cn("shrink-0", size === "cook" ? "size-4 sm:size-5" : "size-4")} aria-hidden />
           {text}
         </li>
       ))}

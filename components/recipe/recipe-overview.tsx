@@ -67,11 +67,11 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
                 href={recipe.source.url}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="group relative block aspect-[2/1] overflow-hidden rounded-2xl bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:aspect-video"
+                className="group brut-shadow relative block aspect-[2/1] overflow-hidden border-2 border-foreground bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:aspect-video"
               >
                 <Image src={recipe.source.thumbnailUrl} alt={`Still from the video "${recipe.title}"`} fill sizes="(max-width: 1023px) 672px, 384px" className="object-cover" priority />
-                <span className="absolute inset-0 grid place-items-center bg-black/10 transition-colors group-hover:bg-black/20">
-                  <span className="grid size-14 place-items-center rounded-full bg-white/90 text-foreground shadow-md">
+                <span className="absolute inset-0 grid place-items-center bg-black/10 transition-colors group-hover:bg-black/25">
+                  <span className="grid size-14 place-items-center border-2 border-foreground bg-accent text-accent-foreground transition-transform group-hover:scale-105">
                     <Play className="ml-0.5 size-6 fill-current" aria-hidden />
                   </span>
                 </span>
@@ -80,22 +80,24 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
             ) : null}
             <div className={cn("space-y-4", !recipe.source.thumbnailUrl && "lg:col-span-2 lg:max-w-3xl")}>
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{creator}</p>
-                <h1 className="text-[2rem] leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl lg:leading-[1.08]">{recipe.title}</h1>
+                <p className="label-mono text-muted-foreground">{creator}</p>
+                <h1 className="text-[2.1rem] leading-[1.02] font-black tracking-[-0.02em] [font-stretch:80%] sm:text-5xl lg:text-6xl">{recipe.title}</h1>
               </div>
               <div className="space-y-2">
-                <dl className="flex flex-wrap gap-x-5 gap-y-2">
+                <dl className="flex flex-wrap border-t-2 border-l-2 border-foreground bg-card">
                   {facts.map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <Icon className="size-4 text-muted-foreground" aria-hidden />
-                      <dt className="text-sm text-muted-foreground">{label}</dt>
-                      <dd className="font-semibold">{value}</dd>
+                    <div key={label} className="flex min-w-[6.5rem] flex-1 flex-col gap-1 border-r-2 border-b-2 border-foreground px-3 py-2">
+                      <dt className="label-mono flex items-center gap-1.5 text-muted-foreground">
+                        <Icon className="size-3.5" aria-hidden />
+                        {label}
+                      </dt>
+                      <dd className="text-lg leading-tight font-extrabold tabular-nums">{value}</dd>
                     </div>
                   ))}
                 </dl>
                 {noTimes ? <p className="text-sm text-muted-foreground">Servings and cooking times weren&apos;t given.</p> : null}
                 {missing === 0 ? (
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-confirmed">
+                  <p className="flex items-center gap-1.5 text-sm font-bold text-confirmed">
                     <CircleCheck className="size-4" aria-hidden />
                     {view.ingredients.some((i) => i.optional && !i.displayQuantity) ? "All amounts given, except optional extras" : "All amounts given by the creator"}
                   </p>
@@ -115,34 +117,34 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
             {/* Ingredients stay in view while the steps scroll (wide screens). */}
             <div className="lg:fade-bottom lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:pr-2 lg:pb-10">
               {missing > 0 ? (
-                <div role="note" className="mt-6 flex gap-3 rounded-2xl bg-missing-bg px-4 py-3.5 text-[0.95rem] lg:mt-0">
-                  <Info className="mt-0.5 size-5 shrink-0 text-missing" aria-hidden />
+                <div role="note" className="mt-8 flex gap-3 border-2 border-foreground bg-missing-bg px-4 py-3.5 text-[0.95rem] text-missing-ink lg:mt-0">
+                  <Info className="mt-0.5 size-5 shrink-0" aria-hidden />
                   <p>
                     <span className="font-semibold">
                       The creator didn&apos;t give {missing === requiredIngredientCount(view) ? "any amounts" : `amounts for ${missing} ${missing === 1 ? "ingredient" : "ingredients"}`}.
                     </span>{" "}
-                    They&apos;re marked <span className="font-medium text-missing">Not specified</span>. Tap one to add your own.
+                    They&apos;re marked <span className="font-bold underline decoration-2 underline-offset-2">Not specified</span>. Tap one to add your own.
                   </p>
                 </div>
               ) : null}
 
               <section aria-labelledby="ingredients-heading" className={cn("mt-8", missing === 0 && "lg:mt-0")}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <h2 id="ingredients-heading" className="text-2xl font-semibold">
+                  <h2 id="ingredients-heading" className="text-3xl font-black tracking-tight [font-stretch:80%]">
                     Ingredients
                   </h2>
                   {checked.size > 0 ? (
-                    <button type="button" onClick={clearChecked} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm text-muted-foreground hover:text-foreground">
+                    <button type="button" onClick={clearChecked} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-sm font-medium underline decoration-2 underline-offset-4 outline-none hover:decoration-accent focus-visible:ring-3 focus-visible:ring-ring">
                       <RotateCcw className="size-4" aria-hidden /> Uncheck all ({checked.size})
                     </button>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Tick them off as you prep</p>
+                    <p className="label-mono text-muted-foreground">Tick them off as you prep</p>
                   )}
                 </div>
                 {groups.map(({ group, items }) => (
                   <div key={group ?? "_"} className="mt-3">
-                    {group ? <h3 className="mt-5 mb-1 font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">{group}</h3> : null}
-                    <ul className="divide-y rounded-2xl border bg-card px-4">
+                    {group ? <h3 className="label-mono mt-6 mb-2 text-foreground">{group}</h3> : null}
+                    <ul className="divide-y divide-foreground/20 border-2 border-foreground bg-card px-4">
                       {items.map((ing) => (
                         <IngredientRow key={ing.id} ingredient={ing} checked={checked.has(ing.id)} onChecked={(v) => toggleChecked(ing.id, v)} onEdit={() => setEditingId(ing.id)} />
                       ))}
@@ -154,13 +156,13 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
 
             <div>
               <section aria-labelledby="steps-heading" className="mt-10 lg:mt-0">
-                <h2 id="steps-heading" className="text-2xl font-semibold">
+                <h2 id="steps-heading" className="text-3xl font-black tracking-tight [font-stretch:80%]">
                   Steps
                 </h2>
-                <ol className="mt-3 space-y-5 lg:mt-4 lg:space-y-6">
+                <ol className="mt-4 border-t-2 border-foreground">
                   {view.steps.map((step, i) => (
-                    <li key={step.id} className="flex gap-4">
-                      <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary font-semibold tabular-nums">
+                    <li key={step.id} className="flex gap-4 border-b-2 border-foreground py-5 lg:py-6">
+                      <span aria-hidden className="grid size-9 shrink-0 place-items-center bg-foreground font-mono text-sm font-semibold text-background tabular-nums">
                         {i + 1}
                       </span>
                       <div className="min-w-0 flex-1 space-y-2 pt-0.5">
@@ -171,7 +173,7 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
                             href={videoLink(recipe, step.videoTimestampSec)}
                             target="_blank"
                             rel="noopener noreferrer nofollow"
-                            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg text-sm font-medium text-primary underline-offset-4 hover:underline"
+                            className="inline-flex min-h-9 items-center gap-1.5 text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4 outline-none hover:bg-accent hover:no-underline focus-visible:ring-3 focus-visible:ring-ring"
                           >
                             <Play className="size-3.5 fill-current" aria-hidden /> Watch at {formatTimestamp(step.videoTimestampSec)}
                           </a>
@@ -184,7 +186,7 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
 
               {recipe.notes.length ? (
                 <section aria-labelledby="notes-heading" className="mt-10">
-                  <h2 id="notes-heading" className="text-2xl font-semibold">
+                  <h2 id="notes-heading" className="text-3xl font-black tracking-tight [font-stretch:80%]">
                     Notes from the creator
                   </h2>
                   <ul className="mt-3 max-w-[65ch] list-disc space-y-1.5 pl-5">
@@ -199,7 +201,7 @@ export function RecipeOverview({ recipe }: { recipe: Recipe }) {
             </div>
           </div>
 
-          <div className="fixed inset-x-0 bottom-0 border-t bg-background/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur supports-backdrop-filter:bg-background/80 lg:hidden">
+          <div className="fixed inset-x-0 bottom-0 border-t-2 border-foreground bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
             <div className="mx-auto max-w-2xl">
               <Button asChild size="touch" className="w-full">
                 <Link href={cookHref}>
@@ -250,8 +252,8 @@ function SourcesPanel({ recipe }: { recipe: Recipe }) {
   for (const e of [...recipe.ingredients.flatMap((i) => i.evidence), ...recipe.steps.flatMap((s) => s.evidence)]) used.add(e.source);
 
   return (
-    <section aria-labelledby="sources-heading" className="mt-12 space-y-5 rounded-2xl bg-muted/70 p-5 text-[0.95rem]">
-      <h2 id="sources-heading" className="text-xl font-semibold">
+    <section aria-labelledby="sources-heading" className="mt-12 space-y-5 border-2 border-foreground bg-card p-5 text-[0.95rem]">
+      <h2 id="sources-heading" className="text-2xl font-black tracking-tight [font-stretch:80%]">
         Where this recipe comes from
       </h2>
       <ul className="space-y-1.5">
@@ -262,7 +264,7 @@ function SourcesPanel({ recipe }: { recipe: Recipe }) {
               {SOURCE_TEXT[s]}
               {s === "linked_recipe" && recipe.source.linkedRecipeUrls.length
                 ? recipe.source.linkedRecipeUrls.map((u) => (
-                    <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow" className="ml-1 font-medium text-primary underline underline-offset-4">
+                    <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow" className="ml-1 font-semibold underline decoration-accent decoration-2 underline-offset-4 hover:bg-accent">
                       at {hostname(u)}
                     </a>
                   ))
@@ -274,7 +276,7 @@ function SourcesPanel({ recipe }: { recipe: Recipe }) {
 
       {recipe.gaps.length ? (
         <div className="space-y-1.5">
-          <h3 className="font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">Not given by the creator</h3>
+          <h3 className="label-mono text-muted-foreground">Not given by the creator</h3>
           <ul className="space-y-1">
             {recipe.gaps.map((g) => (
               <li key={g}>{g}</li>
@@ -285,7 +287,7 @@ function SourcesPanel({ recipe }: { recipe: Recipe }) {
 
       {recipe.conflicts.length ? (
         <div className="space-y-1.5">
-          <h3 className="font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">Checked against each other</h3>
+          <h3 className="label-mono text-muted-foreground">Checked against each other</h3>
           <ul className="space-y-1">
             {recipe.conflicts.map((c) => (
               <li key={c.path}>{c.description}</li>
@@ -295,12 +297,12 @@ function SourcesPanel({ recipe }: { recipe: Recipe }) {
       ) : null}
 
       <div className="space-y-1.5">
-        <h3 className="font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">What the labels mean</h3>
+        <h3 className="label-mono text-muted-foreground">What the labels mean</h3>
         <dl className="grid gap-1.5">
           <Legend term={LABEL_TEXT.confirmed} className="text-confirmed">Said or written by the creator. Shown without a label.</Legend>
           <Legend term={LABEL_TEXT.suggested} className="text-suggested">Worked out from the video, not stated. Worth a double-check.</Legend>
-          <Legend term={LABEL_TEXT.not_specified} className="text-missing">The creator didn&apos;t say. Add your own if you like.</Legend>
-          <Legend term={LABEL_TEXT.edited} className="text-primary">Your own amount. The original is kept, so you can switch back.</Legend>
+          <Legend term={LABEL_TEXT.not_specified} className="h-fit w-fit border-2 border-foreground bg-missing-bg px-1 text-missing-ink">The creator didn&apos;t say. Add your own if you like.</Legend>
+          <Legend term={LABEL_TEXT.edited} className="text-foreground underline decoration-accent decoration-2 underline-offset-2">Your own amount. The original is kept, so you can switch back.</Legend>
         </dl>
       </div>
     </section>

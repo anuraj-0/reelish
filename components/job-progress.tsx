@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Circle, ExternalLink, Loader2, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -89,8 +89,8 @@ export function JobProgress({ jobId }: { jobId: string }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">{job ? `${PLATFORM_NAME[job.platform]} video` : "Starting…"}</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Getting your recipe ready</h1>
+        <p className="label-mono text-muted-foreground">{job ? `${PLATFORM_NAME[job.platform]} video` : "Starting…"}</p>
+        <h1 className="text-4xl leading-none font-black tracking-tight uppercase [font-stretch:75%] sm:text-5xl">Getting your recipe ready</h1>
         {/* Screen readers hear each new stage once, not every poll. */}
         <p aria-live="polite" className="text-muted-foreground">
           {data.kind === "offline"
@@ -106,13 +106,13 @@ export function JobProgress({ jobId }: { jobId: string }) {
       </div>
       {job ? <StageList job={job} /> : <div className="h-40" aria-hidden />}
       {job && elapsedS >= SLOW_AFTER_S ? (
-        <p className="rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+        <p className="border-2 border-foreground bg-card px-4 py-3 text-sm">
           {job.platform === "instagram"
             ? "Instagram videos can take up to a minute. You can leave this page open; it'll update by itself."
             : "This is taking longer than usual. You can leave this page open; it'll update by itself."}
         </p>
       ) : null}
-      <Button asChild variant="ghost" size="xl" className="-ml-3">
+      <Button asChild variant="link" size="xl" className="-ml-5">
         <Link href="/">Cancel</Link>
       </Button>
     </div>
@@ -157,18 +157,18 @@ function RetryButton({ url }: { url: string }) {
 
 function StageList({ job }: { job: JobStatus }) {
   return (
-    <ol className="space-y-1" aria-label="Progress">
+    <ol className="border-2 border-foreground bg-card" aria-label="Progress">
       {job.stages.map((stage) => (
         <li
           key={stage.key}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5",
-            stage.state === "active" && "bg-card shadow-xs ring-1 ring-border",
+            "flex items-center gap-3 px-4 py-3 not-last:border-b-2 not-last:border-foreground",
+            stage.state === "active" && "bg-accent",
             stage.state === "pending" && "text-muted-foreground",
           )}
         >
           <StageIcon state={stage.state} />
-          <span className={cn(stage.state === "active" && "font-medium")}>{STAGE_LABEL[stage.key]}</span>
+          <span className={cn("font-medium", stage.state === "active" && "font-bold")}>{STAGE_LABEL[stage.key]}</span>
           <span className="sr-only">
             {{ done: "(done)", active: "(in progress)", pending: "(not started)", failed: "(failed)" }[stage.state]}
           </span>
@@ -179,18 +179,23 @@ function StageList({ job }: { job: JobStatus }) {
 }
 
 function StageIcon({ state }: { state: JobStatus["stages"][number]["state"] }) {
-  const base = "size-6 shrink-0 rounded-full p-1";
-  if (state === "done") return <Check className={cn(base, "bg-confirmed/15 text-confirmed")} aria-hidden />;
-  if (state === "active") return <Loader2 className={cn(base, "animate-spin text-primary")} aria-hidden />;
-  if (state === "failed") return <X className={cn(base, "bg-destructive/10 text-destructive")} aria-hidden />;
-  return <Circle className={cn(base, "text-border")} aria-hidden />;
+  const base = "size-6 shrink-0 border-2 p-0.5";
+  if (state === "done") return <Check className={cn(base, "border-foreground bg-foreground text-background")} strokeWidth={3} aria-hidden />;
+  if (state === "active") return <Loader2 className={cn(base, "animate-spin border-transparent text-foreground")} strokeWidth={2.5} aria-hidden />;
+  if (state === "failed") return <X className={cn(base, "border-destructive bg-destructive text-white")} strokeWidth={3} aria-hidden />;
+  // Not started: an inert marker, not an empty box that looks like a checkbox.
+  return (
+    <span className="grid size-6 shrink-0 place-items-center" aria-hidden>
+      <span className="size-2 bg-muted-foreground/60" />
+    </span>
+  );
 }
 
 function State({ title, body, children }: { title: string; body: string; children: React.ReactNode }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-4xl leading-none font-black tracking-tight uppercase [font-stretch:75%] sm:text-5xl">{title}</h1>
         <p className="text-muted-foreground">{body}</p>
       </div>
       {children}

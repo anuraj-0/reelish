@@ -46,7 +46,7 @@ function Form({ ingredient, onSave, onRevert, close }: { ingredient: ViewIngredi
       className="grid gap-4"
     >
       <DialogHeader className="text-left">
-        <DialogTitle className="font-heading text-xl">{ingredient.name}</DialogTitle>
+        <DialogTitle className="font-heading text-2xl font-black tracking-tight">{ingredient.name}</DialogTitle>
         <DialogDescription className="text-base">
           {original.quantity
             ? `From the video or creator: ${original.quantity.raw} (${LABEL_TEXT[original.label]}).`
@@ -54,7 +54,7 @@ function Form({ ingredient, onSave, onRevert, close }: { ingredient: ViewIngredi
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-1.5">
-        <label htmlFor={inputId} className="text-sm font-medium">
+        <label htmlFor={inputId} className="label-mono">
           Your amount
         </label>
         <Input

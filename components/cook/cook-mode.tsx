@@ -61,10 +61,10 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
     return (
       <Shell recipe={recipe} wake={wake} progress={null} nav={null} rail={null}>
         <div className="flex flex-1 flex-col justify-center gap-6 py-10">
-          <span className="grid size-16 place-items-center rounded-full bg-confirmed/15 text-confirmed">
-            <Check className="size-8" aria-hidden />
+          <span className="brut-shadow grid size-16 place-items-center border-2 border-foreground bg-accent text-accent-foreground">
+            <Check className="size-8" strokeWidth={3} aria-hidden />
           </span>
-          <h1 ref={headingRef} tabIndex={-1} className="text-4xl font-semibold tracking-tight outline-none">
+          <h1 ref={headingRef} tabIndex={-1} className="text-5xl leading-none font-black tracking-tight uppercase outline-none [font-stretch:75%] sm:text-6xl">
             That&apos;s every step.
           </h1>
           <p className="text-xl text-muted-foreground">Enjoy your {recipe.title.toLowerCase()}.</p>
@@ -89,7 +89,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
       nav={<StepsSheet steps={view.steps} current={index} onJump={setStep} />}
       rail={
         <nav aria-labelledby="rail-heading">
-          <h2 id="rail-heading" className="px-3 font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+          <h2 id="rail-heading" className="label-mono px-3 text-muted-foreground">
             All steps
           </h2>
           <StepList steps={view.steps} current={index} onJump={setStep} className="mt-2" />
@@ -98,7 +98,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
     >
       <div className="flex-1 space-y-4 pb-6 sm:space-y-7 sm:pt-2 md:flex md:flex-col md:justify-center md:space-y-0 md:gap-8 lg:justify-start lg:pt-6">
         {/* Scales with the screen: ~24px on a 375px phone, up to 42px on large screens, less on short ones (1024×768). */}
-        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-medium tracking-tight outline-none md:max-w-[30ch] md:text-[min(2.6rem,4.4dvh)] md:leading-[1.2]">
+        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-semibold tracking-[-0.01em] outline-none md:max-w-[30ch] md:text-[min(2.6rem,4.4dvh)] md:leading-[1.2]">
           <span className="sr-only">
             Step {index + 1} of {total}:{" "}
           </span>
@@ -109,7 +109,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
         {now.length ? (
           <section aria-labelledby="need-heading" className="space-y-1.5 sm:space-y-2 md:max-w-xl">
-            <h2 id="need-heading" className="font-sans text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            <h2 id="need-heading" className="label-mono text-muted-foreground">
               For this step
             </h2>
             <IngredientList items={now} onEdit={setEditingId} />
@@ -119,7 +119,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
         {earlier.length ? (
           // Measured in an earlier step: kept one tap away instead of pushing this step's amounts down.
           <details key={index} className="group md:max-w-xl">
-            <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-xl font-medium text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
               <ChevronDown className="size-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
               <span className="min-w-0 truncate">
                 Already added ({earlier.length}): {earlier.map((i) => i.name.toLowerCase()).join(", ")}
@@ -132,7 +132,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
         <VideoLink recipe={recipe} at={step.videoTimestampSec} />
       </div>
 
-      <div className="sticky bottom-0 -mx-5 flex gap-3 border-t bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:mx-0 lg:max-w-xl lg:px-0 lg:pb-6">
+      <div className="sticky bottom-0 -mx-5 flex gap-3 border-t-2 border-foreground bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:mx-0 lg:mt-6 lg:max-w-xl lg:px-0 lg:pt-4 lg:pb-8">
         <Button size="touch" variant="outline" onClick={goBack} disabled={index === 0} className="w-[38%]">
           <ArrowLeft aria-hidden /> Back
         </Button>
@@ -156,7 +156,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
 function IngredientList({ items, onEdit, className }: { items: ViewIngredient[]; onEdit: (id: string) => void; className?: string }) {
   return (
-    <ul className={cn("divide-y rounded-2xl border bg-card px-4", className)}>
+    <ul className={cn("divide-y divide-foreground/20 border-2 border-foreground bg-card px-4", className)}>
       {items.map((ing) => (
         <li key={ing.id} className="flex min-h-12 items-center justify-between gap-3 py-1 sm:min-h-16 sm:py-2">
           <span className="min-w-0 text-[1.05rem] leading-snug sm:text-lg">
@@ -174,7 +174,7 @@ function IngredientList({ items, onEdit, className }: { items: ViewIngredient[];
 function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe; wake: WakeLockState; progress: { index: number; total: number } | null; nav: React.ReactNode; rail: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5 lg:max-w-6xl lg:px-10">
-      <header className="sticky top-0 z-10 -mx-5 space-y-2.5 bg-background px-5 pt-2 pb-3 sm:space-y-3 sm:pt-3">
+      <header className="sticky top-0 z-10 -mx-5 space-y-2.5 border-b-2 border-foreground bg-background px-5 pt-2 pb-3 sm:space-y-3 sm:pt-3">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="icon" className="size-12 rounded-xl [&_svg:not([class*='size-'])]:size-6">
             <Link href={`/r/${recipe.id}`} aria-label="Leave Cook Mode and go back to the recipe">
@@ -182,9 +182,9 @@ function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe
             </Link>
           </Button>
           <div className="min-w-0 flex-1">
-            <p className="hidden truncate text-sm text-muted-foreground sm:block">{recipe.title}</p>
+            <p className="label-mono hidden truncate text-muted-foreground sm:block">{recipe.title}</p>
             {progress ? (
-              <p className="font-semibold tabular-nums">
+              <p className="font-mono text-lg font-semibold tabular-nums">
                 Step {progress.index + 1} of {progress.total}
               </p>
             ) : null}
@@ -203,7 +203,7 @@ function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe
             className="flex gap-1"
           >
             {Array.from({ length: progress.total }, (_, i) => (
-              <span key={i} className={cn("h-1.5 flex-1 rounded-full", i <= progress.index ? "bg-primary" : "bg-border")} />
+              <span key={i} className={cn("h-2 flex-1", i < progress.index ? "bg-foreground" : i === progress.index ? "bg-accent outline-2 outline-foreground" : "bg-foreground/15")} />
             ))}
           </div>
         ) : null}
@@ -222,7 +222,7 @@ function WakeIndicator({ state }: { state: WakeLockState }) {
   const text = on ? "Screen on" : state === "pending" ? "Screen…" : "May dim";
   const help = state === "unsupported" ? "This browser can't keep the screen on. Adjust your display settings if it dims." : state === "denied" ? "The browser didn't allow keeping the screen on (battery saver can block it)." : undefined;
   return (
-    <span title={help ?? (on ? "Your screen will stay on while you cook" : undefined)} className={cn("inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium", on ? "bg-confirmed/10 text-confirmed" : "bg-muted text-muted-foreground")}>
+    <span title={help ?? (on ? "Your screen will stay on while you cook" : undefined)} className={cn("label-mono inline-flex shrink-0 items-center gap-1 border-2 px-2 py-1", on ? "border-confirmed bg-confirmed text-white" : "border-foreground/30 text-muted-foreground")}>
       {on ? <Sun className="size-4" aria-hidden /> : <SunDim className="size-4" aria-hidden />}
       <span className="sr-only sm:not-sr-only">{text}</span>
       {help ? <span className="sr-only">. {help}</span> : null}
@@ -234,13 +234,13 @@ function VideoLink({ recipe, at }: { recipe: Recipe; at: number | null }) {
   const name = PLATFORM_NAME[recipe.source.platform];
   if (at !== null && canSeek(recipe.source.platform)) {
     return (
-      <a href={videoLink(recipe, at)} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-12 items-center gap-2 rounded-xl font-medium text-primary underline-offset-4 hover:underline">
+      <a href={videoLink(recipe, at)} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-12 items-center gap-2 font-semibold underline decoration-accent decoration-2 underline-offset-4 outline-none hover:bg-accent hover:no-underline focus-visible:ring-3 focus-visible:ring-ring">
         <Play className="size-4 fill-current" aria-hidden /> Watch this step ({formatTimestamp(at)})
       </a>
     );
   }
   return (
-    <a href={recipe.source.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-12 items-center gap-2 rounded-xl font-medium text-primary underline-offset-4 hover:underline">
+    <a href={recipe.source.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-12 items-center gap-2 font-semibold underline decoration-accent decoration-2 underline-offset-4 outline-none hover:bg-accent hover:no-underline focus-visible:ring-3 focus-visible:ring-ring">
       <ExternalLink className="size-4" aria-hidden />
       {at !== null ? `Open the video on ${name} (this step is around ${formatTimestamp(at)})` : `Open the video on ${name}`}
     </a>

@@ -7,9 +7,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-fraunces);
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-archivo);
+  --color-missing-ink: var(--missing-ink);
   --color-missing: var(--missing);
   --color-missing-bg: var(--missing-bg);
   --color-suggested: var(--suggested);
@@ -54,33 +55,35 @@
 }
 
 :root {
-  /* Warm "kitchen paper" palette. Light theme only: it reads best on a counter in daylight. */
-  --background: oklch(0.982 0.008 85);
-  --foreground: oklch(0.23 0.022 50);
-  --card: oklch(0.997 0.003 85);
-  --card-foreground: oklch(0.23 0.022 50);
-  --popover: oklch(0.997 0.003 85);
-  --popover-foreground: oklch(0.23 0.022 50);
-  --primary: oklch(0.54 0.155 38);
-  --primary-foreground: oklch(0.99 0.005 85);
-  --secondary: oklch(0.945 0.018 80);
-  --secondary-foreground: oklch(0.27 0.025 50);
-  --muted: oklch(0.955 0.012 80);
-  --muted-foreground: oklch(0.46 0.025 60);
-  --accent: oklch(0.935 0.03 70);
-  --accent-foreground: oklch(0.27 0.025 50);
-  --destructive: oklch(0.52 0.19 27);
-  --border: oklch(0.895 0.016 75);
-  --input: oklch(0.86 0.018 75);
-  --ring: oklch(0.54 0.155 38);
-  --radius: 0.875rem;
+  /* Brutalist "kitchen manual": paper, black ink, one tomato accent. Light only: it reads best on a
+     counter in daylight. Every text pairing is AA or better; black-on-tomato is 6.6:1. */
+  --background: #f4f3ee;
+  --foreground: #0b0b0b;
+  --card: #ffffff;
+  --card-foreground: #0b0b0b;
+  --popover: #ffffff;
+  --popover-foreground: #0b0b0b;
+  --primary: #0b0b0b;
+  --primary-foreground: #ffffff;
+  --secondary: #e7e5dd;
+  --secondary-foreground: #0b0b0b;
+  --muted: #e7e5dd;
+  --muted-foreground: #46443f;
+  --accent: #ff5a1f;
+  --accent-foreground: #0b0b0b;
+  --destructive: #c4121f;
+  --border: #0b0b0b;
+  --input: #0b0b0b;
+  --ring: #e23d00;
+  --radius: 0rem;
 
   /* Quantity labels */
-  --missing: oklch(0.47 0.11 65);
-  --missing-bg: oklch(0.955 0.045 85);
-  --suggested: oklch(0.45 0.09 255);
-  --suggested-bg: oklch(0.95 0.025 255);
-  --confirmed: oklch(0.47 0.1 150);
+  --missing: #6b4f00;
+  --missing-ink: #0b0b0b;
+  --missing-bg: #ffe14d;
+  --suggested: #1c39d4;
+  --suggested-bg: #e1e6ff;
+  --confirmed: #00703a;
 }
 
 @layer base {
@@ -96,11 +99,49 @@
   }
   h1, h2, h3 {
     font-family: var(--font-heading);
+    font-stretch: 88%;
+    letter-spacing: -0.015em;
+    /* Tight, condensed display type needs a little more room between words to stay scannable. */
+    word-spacing: 0.06em;
     text-wrap: balance;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  input {
+    caret-color: var(--accent);
   }
   p {
     text-wrap: pretty;
   }
+}
+
+/* Hard offset shadow: the brutalist "slab" for things you can press. */
+@utility brut-shadow {
+  box-shadow: 4px 4px 0 0 var(--foreground);
+}
+@utility brut-shadow-sm {
+  box-shadow: 3px 3px 0 0 var(--foreground);
+}
+/* Pressing pushes the slab into its shadow: physical, immediate feedback. */
+@utility brut-press {
+  transition-property: transform, box-shadow, background-color, color;
+  transition-duration: 140ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  &:active:not(:disabled) {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 0 var(--foreground);
+  }
+}
+/* Small uppercase mono labels: metadata, section kickers, counters. */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* Soft fade at the bottom of independently scrolling columns, so cut-off content reads as "more below". */
