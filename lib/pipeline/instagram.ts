@@ -126,6 +126,8 @@ export async function runInstagramJob(ctx: Ctx): Promise<string> {
 
   let transcript: string | null = null;
   let visual: string | null = null;
+  // Set when on-screen text was needed but a daily or 30-day credit limit blocked it (a later try may work).
+  let visualBlocked = false;
   if (sufficient) {
     skip("transcript");
     skip("visual");
@@ -150,6 +152,8 @@ export async function runInstagramJob(ctx: Ctx): Promise<string> {
         // Optional extra: if the credit caps don't allow it, carry on with what we have.
         if (!(e instanceof PipelineError && e.code === "limited")) throw e;
         log("ig_visual_skipped", { jobId: job.id, reason: e.message }, "warn");
+        // The per-job cap won't change on a retry, so that one stays a final answer.
+        visualBlocked = !e.message.startsWith("job would use");
         skip("visual");
       }
     } else {
@@ -157,8 +161,13 @@ export async function runInstagramJob(ctx: Ctx): Promise<string> {
     }
   }
 
+  // Without the on-screen text we can't tell "not a recipe" from "recipe we didn't read". "not_a_recipe" is
+  // reused for 24 h, so report the limit instead and let a later try read the screen.
+  const blockedError = () => new PipelineError("limited", "on-screen text needed but a Supadata credit limit was reached");
+
   // Nothing to read: say so instead of asking the model to imagine a recipe.
   if (!caption && !linked.recipe && !transcript && !visual) {
+    if (visualBlocked) throw blockedError();
     throw new PipelineError("not_a_recipe", "no caption, linked recipe, speech or on-screen text to read");
   }
 
@@ -190,7 +199,15 @@ export async function runInstagramJob(ctx: Ctx): Promise<string> {
   const t0 = Date.now();
   const recipeId = `ig-${code}-${randomBytes(3).toString("hex")}`;
   const stages = ["caption", "linked_recipe", ...(sufficient ? [] : ["transcript"]), ...(visual ? ["visual"] : []), "normalize"];
-  const { recipe, warnings } = normalizeRecipe(output.llm, {
+  const normalize = (...args: Parameters<typeof normalizeRecipe>) => {
+    try {
+      return normalizeRecipe(...args);
+    } catch (e) {
+      if (visualBlocked && e instanceof PipelineError && e.code === "not_a_recipe") throw blockedError();
+      throw e;
+    }
+  };
+  const { recipe, warnings } = normalize(output.llm, {
     recipeId,
     pipelineVersion: INSTAGRAM_PIPELINE_VERSION,
     createdAt: new Date().toISOString(),

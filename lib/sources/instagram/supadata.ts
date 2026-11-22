@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { env, requireEnv } from "@/lib/env";
 import { isAbortError, PipelineError } from "@/lib/pipeline/errors";
-import type { InstagramProvider, Paid, ResumeStore } from "./types";
+import type { InstagramProvider, Paid, ResumeStore, TranscriptSegment } from "./types";
 
 /**
  * Supadata (https://docs.supadata.ai): the only module that knows its endpoints.
@@ -174,19 +174,27 @@ export const supadata: InstagramProvider = {
       return { lang, segments };
     };
     const query = `/transcript?url=${encodeURIComponent(reelUrl)}&lang=en&mode=auto&text=false`;
-    const out = await runJob({
-      start: async () => {
-        const r = await call(query, { signal, what: "transcript" });
-        // 206 transcript-unavailable: no speech we can use (billed 1 credit).
-        if (r.status === 206) return { ...r, status: 200, body: { lang: null, content: [] } };
-        return r;
-      },
-      pollPath: (id) => `/transcript/${id}`,
-      resume,
-      signal,
-      what: "transcript",
-      done: parse,
-    });
+    let out: Omit<Paid<{ lang: string | null; segments: TranscriptSegment[] }>, "latencyMs">;
+    try {
+      out = await runJob({
+        start: async () => {
+          const r = await call(query, { signal, what: "transcript" });
+          // 206 transcript-unavailable: no speech we can use (billed 1 credit).
+          if (r.status === 206) return { ...r, status: 200, body: { lang: null, content: [] } };
+          return r;
+        },
+        pollPath: (id) => `/transcript/${id}`,
+        resume,
+        signal,
+        what: "transcript",
+        done: parse,
+      });
+    } catch (e) {
+      // A music-only Reel has no audio track. That means "no speech" (go on to on-screen text), not "can't open".
+      // Billing for this refusal isn't documented, so credits stay unknown and count at worst case.
+      if (e instanceof PipelineError && /no audio track/i.test(e.message)) out = { value: { lang: null, segments: [] }, credits: null };
+      else throw e;
+    }
     return { ...out, latencyMs: Date.now() - t };
   },
 

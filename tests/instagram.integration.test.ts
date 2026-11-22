@@ -194,6 +194,37 @@ describe("Instagram: the cheapest path that gives a recipe", () => {
     expect(quantityLabel(recipe.ingredients.find((i) => i.name === "Ice")!)).toBe("suggested");
     expect(JSON.stringify(api.calls.find((c) => c.url.href.startsWith("https://openrouter.ai/"))!.body)).toContain("<<<SOURCE VISUAL_NOTES>>>");
   });
+
+  // Real case (2026-11-22): music-only Reels made Supadata answer 400 "no audio track", which used to end the job
+  // as "can't open this video".
+  const noAudio = { error: "invalid-request", message: "Invalid Request", details: "This video has no audio track to transcribe" };
+  const silentMeta = { ...meta.pasta, id: "SILENTreel1", description: "So good 😍 #matcha #latte", media: { type: "video", duration: 20 } };
+
+  it.each([
+    ["answered at once", () => api.on("transcript", () => billed(noAudio, 0, 400))],
+    ["as a failed async job", () => (api.on("transcript", () => billed({ jobId: "t-1" }, 0, 202)), api.on("transcript-poll", () => billed({ status: "failed", error: noAudio }, 0)))],
+  ])("no audio track (%s) means no speech: the visual pass runs", async (_n, mockTranscript) => {
+    api.always("metadata", () => billed(silentMeta, 1));
+    mockTranscript();
+    api.on("extract", () => billed({ jobId: "x-1" }, 5, 202));
+    api.on("extract-poll", () => billed({ status: "completed", data: silentVisualNotes }, 0));
+    api.always("ai", () => aiResponse(silentAnswer));
+    const { body } = startJob(SILENT, "client", db);
+    expect((await runNext(db)).status).toBe("succeeded");
+    expect(api.count("extract")).toBe(1);
+    expect(getRecipe(getJobStatus(body.jobId!, db)!.recipeId!, db)!.extraction.stages).toEqual(["caption", "linked_recipe", "transcript", "visual", "normalize"]);
+  });
+
+  it("on-screen text needed but the daily cap blocks it → 'limited', not a cached 'not a recipe'", async () => {
+    vi.stubEnv("SUPADATA_DAILY_CREDITS", "5");
+    resetEnvForTests();
+    api.always("metadata", () => billed(silentMeta, 1));
+    api.on("transcript", () => billed(noAudio, 0, 400));
+    api.always("ai", () => aiResponse({ ...silentAnswer, is_recipe: false, ingredients: [], steps: [] }));
+    startJob(SILENT, "client", db);
+    expect(await runNext(db)).toMatchObject({ status: "failed", error_code: "limited" });
+    expect(api.count("extract")).toBe(0);
+  });
 });
 
 describe("Instagram: inaccessible, unsuitable and incomplete Reels", () => {
