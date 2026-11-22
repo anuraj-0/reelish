@@ -21,7 +21,7 @@ function errorText(code: string | undefined): string {
 
 const FOCUS = "outline-none focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
-export function StartForm({ featured, more, trust }: { featured: Example[]; more: Example[]; trust: string }) {
+export function StartForm({ featured, trust }: { featured: Example[]; trust: string }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -152,29 +152,6 @@ export function StartForm({ featured, more, trust }: { featured: Example[]; more
             </li>
           ))}
         </ul>
-        {more.length ? (
-          <div className="mt-6 text-sm">
-            <h3 className="label-mono text-muted-foreground">More examples</h3>
-            <ul className="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-6">
-              {more.map((ex) => (
-                <li key={ex.url}>
-                  <button
-                    type="button"
-                    onClick={() => startExample(ex)}
-                    disabled={submitting !== null}
-                    className={cn("flex min-h-11 flex-wrap items-center gap-x-2 py-1.5 text-left disabled:opacity-60", FOCUS)}
-                  >
-                    <span className="font-semibold whitespace-nowrap underline decoration-accent decoration-2 underline-offset-4">{ex.title}</span>
-                    <span className="text-muted-foreground">
-                      {ex.platform} · {ex.detail}
-                    </span>
-                    {submitting === ex.url ? <Loader2 className="size-4 shrink-0 animate-spin" aria-label="Starting" /> : null}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </section>
     </>
   );

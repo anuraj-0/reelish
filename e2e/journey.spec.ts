@@ -199,7 +199,9 @@ test("unknown recipe links return a real 404", async ({ page }) => {
 });
 
 test("failure states are clear and honest", async ({ page }) => {
-  await startExample(page, "A private video");
+  await page.goto("/");
+  await page.getByLabel("Video link").fill("https://www.youtube.com/watch?v=privateDemo");
+  await page.getByRole("button", { name: "Get my recipe" }).click();
   await expect(page.getByRole("heading", { name: "We couldn't access this video" })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole("list", { name: "Progress" }).getByRole("listitem").first()).toContainText("(failed)");
   await expect(page.getByRole("list", { name: "Progress" }).getByRole("listitem").nth(1)).toContainText("(not started)");
@@ -311,8 +313,8 @@ test("home: featured recipes are whole-card buttons; a second submit is ignored 
   for (const title of ["Creamy Vegetable Soup", "Crispy Pasta Salad", "Kaju Katli Sparklers"]) {
     await expect(page.getByRole("button", { name: new RegExp(title) })).toBeVisible();
   }
-  // Failure and edge cases live under "More examples", not alongside the recipes.
-  await expect(page.getByRole("heading", { name: "More examples" })).toBeVisible();
+  // Only recipes are offered as examples; failure cases aren't shown on the home page.
+  await expect(page.getByRole("heading", { name: "More examples" })).toHaveCount(0);
   await expect(page.getByText("YouTube and Instagram links are read live")).toHaveCount(0);
 
   // Count job requests: a double click must start one job, not two.

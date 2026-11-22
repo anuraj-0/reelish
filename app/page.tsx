@@ -2,20 +2,21 @@ import { BookOpenCheck, CircleHelp, MonitorSmartphone } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { StartForm, type Example } from "@/components/start-form";
 import { instagramLive, pipelineMode } from "@/lib/env";
-import { DEMO_UNAVAILABLE_ID } from "@/lib/jobs/mock";
 
 // Thumbnails are the videos' own YouTube stills. The Instagram reel has none we can show, so its card uses a plain fallback.
 const yt = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
-const FEATURED: Example[] = [
+// The live site shows recipes people have made there. The fixtures preview can only open its saved recipes.
+const FEATURED_LIVE: Example[] = [
+  { url: "https://www.youtube.com/watch?v=Mtrg3To4VCg", title: "Dhaba Style Dal Tadka", platform: "YouTube", detail: "Amounts from the creator", thumbnail: yt("Mtrg3To4VCg") },
+  { url: "https://www.youtube.com/watch?v=KehYpqc1NTw", title: "Sooji Halwa", platform: "YouTube", detail: "Complete recipe", thumbnail: yt("KehYpqc1NTw") },
+  { url: "https://www.instagram.com/reel/DWZqrugEacU/", title: "Crispy Pasta Salad", platform: "Instagram", detail: "From an Instagram reel", thumbnail: null },
+];
+
+const FEATURED_PREVIEW: Example[] = [
   { url: "https://www.youtube.com/shorts/VTR8vxBFGDY", title: "Creamy Vegetable Soup", platform: "YouTube", detail: "Complete recipe", thumbnail: yt("VTR8vxBFGDY") },
   { url: "https://www.instagram.com/reel/DWZqrugEacU/", title: "Crispy Pasta Salad", platform: "Instagram", detail: "From an Instagram reel", thumbnail: null },
   { url: "https://www.youtube.com/shorts/s4na199iyag", title: "Kaju Katli Sparklers", platform: "YouTube", detail: "Recipe from a silent video", thumbnail: yt("s4na199iyag") },
-];
-
-const MORE: Example[] = [
-  { url: "https://www.instagram.com/reel/DPeUV0GjQnF/", title: "Juicy Roast Turkey", platform: "Instagram", detail: "amounts not given", thumbnail: null },
-  { url: `https://www.youtube.com/watch?v=${DEMO_UNAVAILABLE_ID}`, title: "A private video", platform: "YouTube", detail: "what happens when a video can't be opened", thumbnail: null },
 ];
 
 const POINTS = [
@@ -47,7 +48,7 @@ export default function Home() {
             Paste a YouTube or Instagram cooking video. Get the ingredients, clear instructions, and a step-by-step cooking guide.
           </p>
         </div>
-        <StartForm featured={FEATURED} more={MORE} trust={trustLine()} />
+        <StartForm featured={pipelineMode() === "live" ? FEATURED_LIVE : FEATURED_PREVIEW} trust={trustLine()} />
 
         <section aria-labelledby="benefits-heading" className="mt-20 border-t-2 border-foreground pt-8">
           <h2 id="benefits-heading" className="text-2xl font-black tracking-tight sm:text-3xl">
