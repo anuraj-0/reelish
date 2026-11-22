@@ -8,8 +8,8 @@ recipe hides behind a link. An AI that "writes the recipe" looks complete even w
 much, which is worse than an honest gap.
 
 ## Key decisions and why
-- **Never invent a quantity.** Every amount is "confirmed from creator", "suggested" or "Not specified". The
-  cook can add their own amount and still see the creator's original.
+- **Never invent a quantity.** Every amount is marked "From the creator", "Estimated" or "Not provided".
+  The cook can add their own amount and still see the creator's original.
 - **Creator text first.** Descriptions, captions and linked recipe pages hold the real amounts far more often
   than the video. On YouTube, Gemini watches the video and reads that text. On Instagram we pay for a
   transcript only when the caption and linked page aren't enough.
@@ -27,7 +27,7 @@ downloads; a fallback AI provider; a cost dashboard; a "paste the caption" mode 
 
 ## What can go wrong, and what Reelish does
 - **Bad link, private/missing video, over 15 minutes:** a plain message, no AI cost.
-- **Not a recipe:** said plainly after one AI call. **No amounts given:** all shown "Not specified", with a
+- **Not a recipe:** said plainly after one AI call. **No amounts given:** all shown "Not provided", with a
   banner.
 - **Upstream error:** two retries, then a clear failure and a retry button.
 - **Worker crash mid-job:** the job resumes from cache after 30 s. Tested on the live server with a forced kill;

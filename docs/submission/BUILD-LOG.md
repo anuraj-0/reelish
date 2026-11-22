@@ -16,24 +16,25 @@
   Encrypt certificate, a small VPS shared with DeepClean.app.
 
 ## Time
-**Estimate, not a measurement: about 6–8 hours in total.** Working time wasn't tracked with a timer.
+**Estimate, not a measurement: about 8–10 hours in total.** Working time wasn't tracked with a timer.
 
 How the estimate was made:
 - The Claude Code transcripts for this project have message timestamps from 21 Nov 2026 17:33 IST to 22 Nov
-  about 02:00 IST. Counting only stretches with no gap over 15 minutes gives **about 6.5 hours of active
+  about 15:30 IST. Counting only stretches with no gap over 15 minutes gives **about 7.5 hours of active
   session time**:
   - 4.4 h spike through M3,
   - 0.7 h M4 review,
-  - about 1.3 h deployment and final documents.
+  - about 1.8 h deployment, final documents and the visual redesign,
+  - about 0.6 h two short fix sessions (a Back-button bug, a UX and wording pass).
 - That is session time, not the person's effort. Claude worked for long stretches inside single turns, and
-  some time was spent outside the sessions (accounts and API keys, reading outputs, decisions). The 6–8 h range
+  some time was spent outside the sessions (accounts and API keys, reading outputs, decisions). The 8–10 h range
   allows for that, but it's a judgment.
 
 What the repository shows:
 - 21 November 2026: commits run from 18:24 to 23:44 IST (milestones M0–M3), with a gap between about 20:10 and
   22:30 that has no commits.
-- 21–22 November: further commits up to about 02:00 IST on 22 Nov: M4 evaluation and production review, the Cook
-  Mode and wording fixes, then deployment and the final documents.
+- 21–22 November: further commits up to about 15:00 IST on 22 Nov: M4 evaluation and production review, the Cook
+  Mode and wording fixes, deployment and the final documents, then the visual redesign and a UX pass.
 
 That's a range of commit times, not hours worked:
 - It leaves out time before the first commit (spike, planning) and time between sessions.

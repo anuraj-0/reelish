@@ -13,7 +13,9 @@ scoring notes for #1–10 are in `docs/M4-EVALUATION.md`; this is the summary.
 a linked recipe page). It's not a prediction written before the run. Where there is no written recipe, the
 expected result is "no invented amounts", because we can't know the true amounts.
 
-**Scores** compare against the creator's written text only. Rows marked "not verified" would need a person
+**Scores** compare against the creator's written text only. App messages and labels are quoted as they
+appeared during testing. The live app later renamed the amount labels to "From the creator", "Estimated", "Not
+provided" and "Added by you", and the "can't open" message to "We couldn't access this video". Rows marked "not verified" would need a person
 to watch the video.
 
 ## Results
@@ -37,6 +39,7 @@ to watch the video.
   an AI call was impossible even by mistake. The database recorded one run at $0.00.
 - The other planned fresh runs (F1 Food52 13-minute video, F2 no-talking ASMR video, F4 a Reel from another
   creator) were **not run**, by decision, to ship.
+
 **Extraction:** on the four recipes with a written source, 49/49 ingredients and 45/45 amounts match. No
 quantities were invented anywhere.
 **Cooking usability (reviewer judgment, not observed):**
@@ -100,7 +103,8 @@ build.
 ## Production smoke test (deployed site, 2026-11-22 01:10–01:22 IST)
 
 Run against `https://deepclean.app/reelish` (release `4d6083c`), not localhost. The browser checks were
-re-run at about 01:55 IST on the current release `af44fbb` (a start-form fix): 42/42 passed, cached videos only, $0.
+re-run on each later release, using cached videos only ($0): `af44fbb` (start-form fix), `384b6e2` (visual redesign)
+and `12ff1e1` (UX and wording pass, live at submission). 42/42 passed each time.
 
 **Browser checks:** `node scripts/smoke-prod.mjs` (Chromium, desktop 1280×860 and Pixel 7). **42/42 passed**
 on the final run:
