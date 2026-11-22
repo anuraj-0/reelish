@@ -10,7 +10,7 @@ const yt = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const FEATURED_LIVE: Example[] = [
   { url: "https://www.youtube.com/watch?v=Mtrg3To4VCg", title: "Dhaba Style Dal Tadka", platform: "YouTube", detail: "Amounts from the creator", thumbnail: yt("Mtrg3To4VCg") },
   { url: "https://www.youtube.com/watch?v=KehYpqc1NTw", title: "Sooji Halwa", platform: "YouTube", detail: "Complete recipe", thumbnail: yt("KehYpqc1NTw") },
-  { url: "https://www.instagram.com/reel/DWZqrugEacU/", title: "Crispy Pasta Salad", platform: "Instagram", detail: "From an Instagram reel", thumbnail: null },
+  { url: "https://www.instagram.com/reel/CjwyMyHJtcu/", title: "Paneer Butter Masala", platform: "Instagram", detail: "From a silent reel", thumbnail: null },
 ];
 
 const FEATURED_PREVIEW: Example[] = [
