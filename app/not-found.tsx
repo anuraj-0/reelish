@@ -9,7 +9,7 @@ export default function NotFound() {
         <Brand />
       </header>
       <main className="space-y-4 pt-16">
-        <h1 className="text-4xl leading-none font-black tracking-tight uppercase [font-stretch:75%] sm:text-5xl">We can&apos;t find that recipe</h1>
+        <h1 className="text-4xl leading-[1.05] font-black tracking-tight [font-stretch:80%] sm:text-5xl">We can&apos;t find that recipe</h1>
         <p className="text-muted-foreground">The link may be wrong or out of date. Paste the video link again to make it.</p>
         <Button asChild size="xl">
           <Link href="/">Paste a link</Link>

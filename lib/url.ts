@@ -22,8 +22,8 @@ const MAX_LENGTH = 500;
 
 export const URL_ERROR_TEXT: Record<UrlError, string> = {
   empty: "Paste a link to a YouTube or Instagram cooking video.",
-  invalid: "That doesn't look like a link. Copy the video's share link and paste it here.",
-  unsupported_site: "Reelish works with YouTube and Instagram links for now.",
+  invalid: "That doesn't look like a YouTube or Instagram link. Check the URL and try again.",
+  unsupported_site: "Reelish works with YouTube and Instagram links. Check the URL and try again.",
   unsupported_path: "That link isn't a single video. Open the video itself, then copy its link.",
 };
 

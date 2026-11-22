@@ -55,7 +55,7 @@ export function JobProgress({ jobId }: { jobId: string }) {
     return (
       <State title="We can't find this request" body="It may have expired. Paste the link again to start over.">
         <Button asChild size="xl">
-          <Link href="/">Paste a link</Link>
+          <Link href="/">Paste a video link</Link>
         </Button>
       </State>
     );
@@ -70,7 +70,7 @@ export function JobProgress({ jobId }: { jobId: string }) {
         <div className="flex flex-col gap-2 sm:flex-row">
           {text.retry ? <RetryButton url={job.sourceUrl} /> : null}
           <Button asChild size="xl" variant={text.retry ? "outline" : "default"}>
-            <Link href="/">Try another link</Link>
+            <Link href="/">Try another video</Link>
           </Button>
           <Button asChild size="xl" variant="outline">
             <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">
@@ -90,7 +90,7 @@ export function JobProgress({ jobId }: { jobId: string }) {
     <div className="space-y-6">
       <div className="space-y-2">
         <p className="label-mono text-muted-foreground">{job ? `${PLATFORM_NAME[job.platform]} video` : "Starting…"}</p>
-        <h1 className="text-4xl leading-none font-black tracking-tight uppercase [font-stretch:75%] sm:text-5xl">Getting your recipe ready</h1>
+        <h1 className="text-4xl leading-[1.05] font-black tracking-tight [font-stretch:80%] sm:text-5xl">Getting your recipe ready</h1>
         {/* Screen readers hear each new stage once, not every poll. */}
         <p aria-live="polite" className="text-muted-foreground">
           {data.kind === "offline"
@@ -195,7 +195,7 @@ function State({ title, body, children }: { title: string; body: string; childre
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-4xl leading-none font-black tracking-tight uppercase [font-stretch:75%] sm:text-5xl">{title}</h1>
+        <h1 className="text-4xl leading-[1.05] font-black tracking-tight [font-stretch:80%] sm:text-5xl">{title}</h1>
         <p className="text-muted-foreground">{body}</p>
       </div>
       {children}

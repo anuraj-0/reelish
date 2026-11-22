@@ -49,8 +49,8 @@ function Form({ ingredient, onSave, onRevert, close }: { ingredient: ViewIngredi
         <DialogTitle className="font-heading text-2xl font-black tracking-tight">{ingredient.name}</DialogTitle>
         <DialogDescription className="text-base">
           {original.quantity
-            ? `From the video or creator: ${original.quantity.raw} (${LABEL_TEXT[original.label]}).`
-            : "The creator didn't say how much. Add the amount you're using."}
+            ? `In the recipe: ${original.quantity.raw} (${LABEL_TEXT[original.label]}).`
+            : "This amount is missing from the video. Add the amount you're using."}
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-1.5">
@@ -67,7 +67,7 @@ function Form({ ingredient, onSave, onRevert, close }: { ingredient: ViewIngredi
           }}
           placeholder="e.g. 2 cups, 150 g, a pinch"
           aria-invalid={Boolean(error)}
-          className="h-12 rounded-xl text-base md:text-base"
+          className="h-12 text-base md:text-base"
           maxLength={80}
         />
         <p role="alert" className="min-h-5 text-sm text-destructive">

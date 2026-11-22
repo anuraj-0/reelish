@@ -8,9 +8,9 @@ const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], axes: 
 const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500", "600"] });
 
 export const metadata: Metadata = {
-  title: { default: "Reelish: cook from any recipe video", template: "%s · Reelish" },
+  title: { default: "Reelish: turn cooking videos into recipes", template: "%s · Reelish" },
   description:
-    "Paste a YouTube or Instagram cooking video and get a recipe you can actually cook from, with clear notes on anything the creator didn't say.",
+    "Paste a YouTube or Instagram cooking video. Get the ingredients, clear instructions, and a step-by-step cooking guide.",
 };
 
 export const viewport: Viewport = {

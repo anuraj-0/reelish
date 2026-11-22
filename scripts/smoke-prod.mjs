@@ -37,7 +37,7 @@ async function paste(page, url) {
   await page.goto(`${BASE}`);
   await page.getByLabel("Video link").fill(url);
   const t0 = Date.now();
-  await page.getByRole("button", { name: "Get the recipe" }).click();
+  await page.getByRole("button", { name: "Get my recipe" }).click();
   await page.waitForURL(/\/(jobs|r)\//, { timeout: 15_000 });
   const viaJob = page.url().includes("/jobs/");
   if (viaJob) await page.waitForURL(/\/r\/|\/jobs\//, { timeout: 5_000 });
@@ -55,14 +55,14 @@ async function run(name, deviceOpts) {
 
   const res = await page.goto(BASE);
   check(L("landing loads over HTTPS"), res?.status() === 200 && page.url().startsWith("https://"), `${res?.status()} ${page.url()}`);
-  check(L("landing heading"), (await page.getByRole("heading", { level: 1 }).textContent())?.includes("Cook from the video"));
+  check(L("landing heading"), (await page.getByRole("heading", { level: 1 }).textContent())?.includes("Turn cooking videos into recipes"));
   await axe(page, L("landing"));
   await noOverflow(page, L("landing"));
   await shot(page, `${name}-01-landing`);
 
   // Invalid links are refused before any job.
   await page.getByLabel("Video link").fill("https://www.tiktok.com/@chef/video/123");
-  await page.getByRole("button", { name: "Get the recipe" }).click();
+  await page.getByRole("button", { name: "Get my recipe" }).click();
   check(L("TikTok link refused inline"), /YouTube and Instagram/.test((await page.getByRole("alert").first().textContent()) ?? ""));
 
   // New (or cached) YouTube recipe.
@@ -78,7 +78,7 @@ async function run(name, deviceOpts) {
   const ms = Date.now() - t0;
   check(L(`soup recipe ready (${viaJob ? "processed" : "cached"})`), true, `${(ms / 1000).toFixed(1)} s`);
   await page.getByRole("heading", { level: 1 }).waitFor();
-  check(L("soup: confirmed broth amount shown"), await waits(() => expect(page.getByRole("button", { name: /broth: 4 cups, Confirmed from creator/ })).toBeVisible()));
+  check(L("soup: confirmed broth amount shown"), await waits(() => expect(page.getByRole("button", { name: /broth: 4 cups, From the creator/ })).toBeVisible()));
   await axe(page, L("overview"));
   await noOverflow(page, L("overview"));
   await shot(page, `${name}-03-overview`);
@@ -98,29 +98,33 @@ async function run(name, deviceOpts) {
   await axe(page, L("cook mode"));
   await noOverflow(page, L("cook mode"));
   await shot(page, `${name}-04-cook`);
-  await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  const tap = async (name) => {
+    await page.waitForTimeout(350); // Cook Mode ignores a repeat tap within 300 ms
+    await page.getByRole("button", { name, exact: true }).click();
+  };
+  await tap("Next step");
+  await tap("Next step");
   await page.reload();
   check(L("cook progress survives reload"), await waits(() => expect(page.getByText(`Step 3 of ${total}`, { exact: true })).toBeVisible()));
-  for (let i = 3; i < total; i++) await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("button", { name: "Finish", exact: true }).click();
-  check(L("cook mode finishes"), await waits(() => expect(page.getByRole("heading", { name: "That's every step." })).toBeVisible()));
+  for (let i = 3; i < total; i++) await tap("Next step");
+  await tap("Finish");
+  check(L("cook mode finishes"), await waits(() => expect(page.getByRole("heading", { name: "You're done! Enjoy your meal." })).toBeVisible()));
   await page.getByRole("button", { name: "Start over" }).click();
 
   // Missing amounts stay missing; a user edit is an overlay and can be removed.
   await paste(page, KAJU);
   await page.waitForURL(/\/r\/yt-s4na199iyag[^/]*$/, { timeout: 120_000 });
   await page.getByRole("heading", { level: 1 }).waitFor();
-  const missing = await page.getByRole("button", { name: /: Not specified\. Add amount$/ }).count();
-  check(L("kaju katli: missing amounts shown as Not specified"), missing > 0, `${missing} not specified`);
-  await page.getByRole("button", { name: /: Not specified\. Add amount$/ }).first().click();
+  const missing = await page.getByRole("button", { name: /: Not provided\. Add amount$/ }).count();
+  check(L("kaju katli: missing amounts shown as Not provided"), missing > 0, `${missing} not provided`);
+  await page.getByRole("button", { name: /: Not provided\. Add amount$/ }).first().click();
   await page.getByRole("dialog").getByLabel("Your amount").fill("2 tbsp");
   await page.getByRole("dialog").getByRole("button", { name: "Save amount" }).click();
   await page.reload();
-  check(L("ingredient edit persists after reload"), await waits(() => expect(page.getByRole("button", { name: /: 2 tbsp, Edited by you\. Edit amount$/ })).toHaveCount(1)));
-  await page.getByRole("button", { name: /: 2 tbsp, Edited by you\. Edit amount$/ }).click();
+  check(L("ingredient edit persists after reload"), await waits(() => expect(page.getByRole("button", { name: /: 2 tbsp, Added by you\. Edit amount$/ })).toHaveCount(1)));
+  await page.getByRole("button", { name: /: 2 tbsp, Added by you\. Edit amount$/ }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Remove my amount" }).click();
-  check(L("removing the edit restores Not specified"), await waits(() => expect(page.getByRole("button", { name: /: Not specified\. Add amount$/ })).toHaveCount(missing)));
+  check(L("removing the edit restores Not provided"), await waits(() => expect(page.getByRole("button", { name: /: Not provided\. Add amount$/ })).toHaveCount(missing)));
   await axe(page, L("missing-amounts overview"));
   await shot(page, `${name}-05-missing`);
 

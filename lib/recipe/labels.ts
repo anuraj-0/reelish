@@ -27,10 +27,11 @@ export function quantityLabel(ingredient: Pick<Ingredient, "quantityStatus" | "e
 }
 
 export const LABEL_TEXT: Record<QuantityLabel, string> = {
-  confirmed: "Confirmed from creator",
-  suggested: "Suggested",
-  not_specified: "Not specified",
-  edited: "Edited by you",
+  // "creator", not "video": confirmed amounts also come from captions, descriptions and linked recipes.
+  confirmed: "From the creator",
+  suggested: "Estimated",
+  not_specified: "Not provided",
+  edited: "Added by you",
 };
 
 /** Plain-language description of a source, for the "Sources" section. */

@@ -25,13 +25,23 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
   const step = view.steps[index];
   const { now, earlier } = splitStepIngredients(view.steps, index);
   const finished = state.finished;
-  const wake = useWakeLock(!finished);
+  // The screen stays on by default; the header control lets the cook turn that off.
+  const [keepOn, setKeepOn] = useState(true);
+  const wake = useWakeLock(!finished && keepOn);
   const [editingId, setEditingId] = useState<string | null>(null);
   const editing = view.ingredients.find((i) => i.id === editingId) ?? null;
   const headingRef = useRef<HTMLHeadingElement>(null);
 
-  const goNext = () => (index + 1 < total ? setStep(index + 1) : finish());
-  const goBack = () => index > 0 && setStep(index - 1);
+  // A quick double tap on Next (or Back) shouldn't skip a step: ignore a repeat in the same direction within 300 ms.
+  const lastMove = useRef({ dir: 0, at: 0 });
+  const move = (dir: 1 | -1, fn: () => void) => {
+    const at = performance.now();
+    if (lastMove.current.dir === dir && at - lastMove.current.at < 300) return;
+    lastMove.current = { dir, at };
+    fn();
+  };
+  const goNext = () => move(1, () => (index + 1 < total ? setStep(index + 1) : finish()));
+  const goBack = () => move(-1, () => index > 0 && setStep(index - 1));
 
   // Move focus to the new step so screen readers announce it and keyboard users stay oriented.
   useEffect(() => {
@@ -51,7 +61,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
   if (!step) {
     return (
-      <Shell recipe={recipe} wake={wake} progress={null} nav={null} rail={null}>
+      <Shell recipe={recipe} wake={null} progress={null} nav={null} rail={null}>
         <p className="text-lg">This recipe has no steps to follow.</p>
       </Shell>
     );
@@ -59,18 +69,20 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
 
   if (finished) {
     return (
-      <Shell recipe={recipe} wake={wake} progress={null} nav={null} rail={null}>
-        <div className="flex flex-1 flex-col justify-center gap-6 py-10">
-          <span className="brut-shadow grid size-16 place-items-center border-2 border-foreground bg-accent text-accent-foreground">
+      <Shell recipe={recipe} wake={null} progress={null} nav={null} rail={null}>
+        <div className="flex flex-1 flex-col justify-center gap-6 py-10 lg:max-w-xl">
+          <span className="grid size-16 place-items-center border-2 border-foreground bg-accent text-accent-foreground">
             <Check className="size-8" strokeWidth={3} aria-hidden />
           </span>
-          <h1 ref={headingRef} tabIndex={-1} className="text-5xl leading-none font-black tracking-tight uppercase outline-none [font-stretch:75%] sm:text-6xl">
-            That&apos;s every step.
+          <h1 ref={headingRef} tabIndex={-1} className="text-[2.75rem] leading-[1.02] font-black tracking-[-0.02em] outline-none [font-stretch:80%] sm:text-6xl">
+            You&apos;re done! Enjoy your meal.
           </h1>
-          <p className="text-xl text-muted-foreground">Enjoy your {recipe.title.toLowerCase()}.</p>
+          <p className="text-lg text-muted-foreground">
+            You finished all {total} steps of {recipe.title}. Start over takes you back to step 1; your added amounts stay as they are.
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="touch">
-              <Link href={`/r/${recipe.id}`}>Back to the recipe</Link>
+              <Link href={`/r/${recipe.id}`}>Back to recipe</Link>
             </Button>
             <Button size="touch" variant="outline" onClick={restartCooking}>
               Start over
@@ -84,7 +96,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
   return (
     <Shell
       recipe={recipe}
-      wake={wake}
+      wake={<WakeControl state={wake} keepOn={keepOn} onToggle={() => setKeepOn((v) => !v)} />}
       progress={{ index, total }}
       nav={<StepsSheet steps={view.steps} current={index} onJump={setStep} />}
       rail={
@@ -96,9 +108,9 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
         </nav>
       }
     >
-      <div className="flex-1 space-y-4 pb-6 sm:space-y-7 sm:pt-2 md:flex md:flex-col md:justify-center md:space-y-0 md:gap-8 lg:justify-start lg:pt-6">
+      <div className="flex-1 space-y-4 pt-4 pb-6 sm:space-y-7 sm:pt-6 md:flex md:flex-col md:justify-center md:space-y-0 md:gap-8 lg:justify-start lg:pt-6">
         {/* Scales with the screen: ~24px on a 375px phone, up to 42px on large screens, less on short ones (1024×768). */}
-        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.3rem,0.9rem+2.4vw,2.25rem)] leading-snug font-semibold tracking-[-0.01em] outline-none md:max-w-[30ch] md:text-[min(2.6rem,4.4dvh)] md:leading-[1.2]">
+        <h1 ref={headingRef} tabIndex={-1} className="font-sans text-[clamp(1.4rem,0.95rem+2.4vw,2.25rem)] leading-snug font-semibold tracking-[-0.01em] outline-none md:max-w-[30ch] md:text-[min(2.6rem,4.4dvh)] md:leading-[1.2]">
           <span className="sr-only">
             Step {index + 1} of {total}:{" "}
           </span>
@@ -139,7 +151,7 @@ export function CookMode({ recipe }: { recipe: Recipe }) {
         <Button size="touch" onClick={goNext} className="flex-1">
           {index + 1 < total ? (
             <>
-              Next <ArrowRight aria-hidden />
+              Next step <ArrowRight aria-hidden />
             </>
           ) : (
             <>
@@ -171,7 +183,7 @@ function IngredientList({ items, onEdit, className }: { items: ViewIngredient[];
   );
 }
 
-function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe; wake: WakeLockState; progress: { index: number; total: number } | null; nav: React.ReactNode; rail: React.ReactNode; children: React.ReactNode }) {
+function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe; wake: React.ReactNode; progress: { index: number; total: number } | null; nav: React.ReactNode; rail: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5 lg:max-w-6xl lg:px-10">
       <header className="sticky top-0 z-10 -mx-5 space-y-2.5 border-b-2 border-foreground bg-background px-5 pt-2 pb-3 sm:space-y-3 sm:pt-3">
@@ -189,7 +201,7 @@ function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe
               </p>
             ) : null}
           </div>
-          <WakeIndicator state={wake} />
+          {wake}
           {nav}
         </div>
         {progress ? (
@@ -217,16 +229,38 @@ function Shell({ recipe, wake, progress, nav, rail, children }: { recipe: Recipe
   );
 }
 
-function WakeIndicator({ state }: { state: WakeLockState }) {
-  const on = state === "active";
-  const text = on ? "Screen on" : state === "pending" ? "Screen…" : "May dim";
-  const help = state === "unsupported" ? "This browser can't keep the screen on. Adjust your display settings if it dims." : state === "denied" ? "The browser didn't allow keeping the screen on (battery saver can block it)." : undefined;
+/**
+ * Keeps the screen on while cooking (on by default) and says honestly when it can't.
+ * The label reflects the browser's real state, never just the user's wish.
+ */
+function WakeControl({ state, keepOn, onToggle }: { state: WakeLockState; keepOn: boolean; onToggle: () => void }) {
+  const base = "label-mono inline-flex h-11 shrink-0 items-center gap-1.5 border-2 px-2.5";
+  if (state === "unsupported" || state === "denied") {
+    const help = state === "unsupported" ? "This browser can't keep the screen on. Adjust your display settings if it dims." : "The browser didn't allow keeping the screen on (battery saver can block it).";
+    return (
+      <span title={help} className={cn(base, "border-foreground/30 text-muted-foreground")}>
+        <SunDim className="size-4" aria-hidden />
+        <span className="sr-only sm:not-sr-only">Screen may dim</span>
+        <span className="sr-only">. {help}</span>
+      </span>
+    );
+  }
+  const on = keepOn && state === "active";
+  const text = !keepOn ? "Screen may dim" : on ? "Screen on" : "Screen…";
   return (
-    <span title={help ?? (on ? "Your screen will stay on while you cook" : undefined)} className={cn("label-mono inline-flex shrink-0 items-center gap-1 border-2 px-2 py-1", on ? "border-confirmed bg-confirmed text-white" : "border-foreground/30 text-muted-foreground")}>
+    <button
+      type="button"
+      aria-pressed={keepOn}
+      aria-label="Keep screen on"
+      onClick={onToggle}
+      title={keepOn ? "Your screen stays on while you cook. Tap to let it dim." : "Tap to keep your screen on while you cook."}
+      className={cn(base, "outline-none focus-visible:ring-3 focus-visible:ring-ring", on ? "border-confirmed bg-confirmed text-white" : "border-foreground/40 bg-card text-muted-foreground hover:border-foreground hover:text-foreground")}
+    >
       {on ? <Sun className="size-4" aria-hidden /> : <SunDim className="size-4" aria-hidden />}
-      <span className="sr-only sm:not-sr-only">{text}</span>
-      {help ? <span className="sr-only">. {help}</span> : null}
-    </span>
+      <span aria-hidden className="hidden sm:inline">
+        {text}
+      </span>
+    </button>
   );
 }
 

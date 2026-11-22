@@ -20,8 +20,8 @@ export type JobErrorCode = z.infer<typeof JobErrorCode>;
 
 export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string; retry: boolean }> = {
   unavailable: {
-    title: "We can't open this video",
-    body: "It may be private, age-restricted, or removed. Check that it plays when you're logged out, or try another link.",
+    title: "We couldn't access this video",
+    body: "It may be private, deleted, or unavailable. Check that it plays when you're logged out, or try another video.",
     retry: false,
   },
   not_a_recipe: {
@@ -35,8 +35,8 @@ export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string;
     retry: true,
   },
   invalid_output: {
-    title: "We couldn't write up this recipe",
-    body: "The video was read, but the result didn't pass our checks. Trying again sometimes works.",
+    title: "We couldn't turn this video into a recipe",
+    body: "Try again or use another video.",
     retry: true,
   },
   limited: {
@@ -46,7 +46,7 @@ export const JOB_ERROR_TEXT: Record<JobErrorCode, { title: string; body: string;
   },
   preview_only: {
     title: "Live processing isn't switched on yet",
-    body: "This preview only works with the example videos below. Real YouTube and Instagram links are coming next.",
+    body: "This preview only works with the example recipes on the home page.",
     retry: false,
   },
   not_a_video: {
