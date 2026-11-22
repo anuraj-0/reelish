@@ -4,9 +4,6 @@ Paste a YouTube or Instagram cooking video and get a recipe you can actually coo
 overview for prepping, and a focused Cook Mode for following the steps. Amounts the creator didn't
 give are shown as **Not provided**, never guessed, and you can add your own.
 
-**Reviewers:** start with [docs/submission/README.md](docs/submission/README.md) (overview, key decisions, results
-and the submission documents).
-
 **Live at <https://deepclean.app/reelish>.** YouTube videos and Shorts, and public Instagram Reels, are
 processed live. Instagram is on by the owner's decision to accept an unresolved permission risk; see
 [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
@@ -16,7 +13,6 @@ processed live. Instagram is on by the owner's decision to accept an unresolved 
 See [docs/PLAN.md](docs/PLAN.md), [docs/M2-RESULTS.md](docs/M2-RESULTS.md),
 [docs/M3-RESULTS.md](docs/M3-RESULTS.md), [docs/M4-EVALUATION.md](docs/M4-EVALUATION.md),
 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (as deployed) and [docs/PLATFORM-CONSTRAINTS.md](docs/PLATFORM-CONSTRAINTS.md).
-Submission documents: [docs/submission/](docs/submission/).
 
 ## Run locally
 

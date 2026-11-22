@@ -154,7 +154,7 @@ creator text and salted IP hashes.
 
 ## Verified on the live site (2026-11-22 IST)
 
-See `docs/submission/TEST-REPORT.md` → "Production smoke test". In short: 42/42 browser checks on desktop and
+See the submission test report ("Live site test"). In short: 42/42 browser checks on desktop and
 mobile, cache hits free, worker SIGKILL mid-job recovered, budget cap and both rate limits trigger, other sites
 unaffected.
 

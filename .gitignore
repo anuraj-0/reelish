@@ -36,3 +36,6 @@ npm-debug.log*
 
 # Release bundles (scripts/package-release.sh)
 /release/
+
+# Submission documents live in the submission folder as PDFs, not in the repo
+/docs/submission/
