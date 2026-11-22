@@ -1,6 +1,6 @@
 # Deployment: Reelish on the shared VPS
 
-**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST. First release `4d6083c`; then `af44fbb` (start-form fix); now `384b6e2` (brutalist redesign). The previous
+**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST. First release `4d6083c`; then `af44fbb` (start-form fix); `384b6e2` (brutalist redesign); now `12ff1e1` (UX pass). The previous
 release is kept on the server for rollback. The server also runs
 DeepClean.app and a few other small apps owned by the same person. Reelish shares only the machine and the
 Nginx process.
