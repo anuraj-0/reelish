@@ -72,7 +72,7 @@ Not read: the Instagram Terms of Use and the "Meta oEmbed Read" feature page.
   - `INSTAGRAM_ENABLED=false` switches Instagram off; only the saved examples keep working.
 - **Reliability:** free plan of 100 credits a month at 1 request per second. Our caps (defaults; production
   values in brackets):
-  - `SUPADATA_DAILY_CREDITS` (25; production 10),
+  - `SUPADATA_DAILY_CREDITS` (25; production 25, raised from 10 on 2026-11-22),
   - `SUPADATA_MONTHLY_CREDITS` (90, a rolling 30 days; production 60),
   - `SUPADATA_MAX_JOB_CREDITS` (12).
 

@@ -1,49 +1,60 @@
 # Reelish: write-up
 
-**Live:** <https://deepclean.app/reelish>. A YouTube or Instagram link becomes a recipe overview plus a Cook
-Mode: one step at a time, with that step's amounts.
+**Live app:** <https://deepclean.app/reelish>. Paste a cooking video; get a recipe to prep from and a step-by-step Cook Mode.
 
-**The problem:** with a video you scrub back with messy hands, amounts are said once or never, and the written
-recipe hides behind a link. An AI that "writes the recipe" looks complete even when the creator never said how
-much, which is worse than an honest gap.
+**The problem.** Recipe videos are easy to find and hard to cook from. A video plays in order, but cooking means
+jumping around ("how much garlic?"). The recipe is also split up. In our first test, the soup
+Short gave 1 of 12 amounts; the creator's linked recipe had all 12. **Who it's for:** home cooks making a dish they
+found on YouTube or Instagram. That's an assumption; we didn't interview users.
 
 ## Key decisions and why
-- **Never invent a quantity.** Every amount is marked "From the creator", "Estimated" or "Not provided".
-  The cook can add their own amount and still see the creator's original.
-- **Creator text first.** Descriptions, captions and linked recipe pages hold the real amounts far more often
-  than the video. On YouTube, Gemini watches the video and reads that text. On Instagram we pay for a
-  transcript only when the caption and linked page aren't enough.
-- **Code checks the model.** An amount credited to the creator's text must appear there, on a line naming that
-  ingredient, or it's downgraded. Prompting alone didn't hold.
-- **Small tested rules, not another AI pass,** for wording fixes and for showing only the ingredients the
-  current step needs.
-- **Boring infrastructure:** SQLite, one worker, an existing VPS; progress stays in the browser.
-- **Spend is booked before it's spent.** Every AI call reserves its worst case under a per-call cap and a
-  daily budget. Results are cached, so retries and crashes don't pay twice.
+
+**1. One view to prepare, another to cook.** Prep needs the whole recipe; cooking needs this step and its
+amounts. Claude compared a plain recipe page (weak mid-cook), a voice-and-timers companion (much more to build)
+and a caption-only parser (useless when nothing is written). It recommended two views; I agreed, as Cook Mode
+reuses the same data. *Cost:* each step must know its ingredients. One real step listed all 12 ingredients and pushed
+amounts off a phone screen, so earlier ones now fold under "Already added".
+
+**2. Never invent an amount.** Each amount is "From the creator", "Estimated" (e.g. read off a carton), "Not
+provided" or "Added by you". Gaps look less complete, but a made-up "2 tbsp" is worse. The prompt isn't enough on
+its own: in testing, the model stated a guessed total time as fact and ignored a prompt rule. So code checks
+every amount the AI credits to the creator's text. If it isn't there, the label drops to "Estimated", and amounts
+the AI guessed are removed. *Result:* 45/45 amounts matched on the 4 recipes with a written source. *Limit:* code
+can't check what the AI says it heard in a YouTube video.
+
+**3. Read the creator's text first,** since that's where the amounts usually are. YouTube: Gemini watches the
+video with the description and linked recipe in the same call. Instagram: caption and linked recipe first; a
+transcript only if a no-AI check says they aren't enough. Each live Reel cost 1 credit; running
+every step had cost up to 8 and added no amounts. *Trade-off:* with no written recipe (3 of 7 test recipes), the
+result stays partial and says so.
 
 ## What we chose not to build
-Accounts; serving scaling and unit conversion (half the videos give no reliable amounts); timers; TikTok; video
-downloads; a fallback AI provider; a cost dashboard; a "paste the caption" mode for Instagram.
+
+**Accounts** (no sign-up; progress stays in the browser). **Voice and timers** (the companion we passed on). **Scaling
+and unit conversion** (3 of 7 test recipes had few amounts to convert). **"Paste the caption" for Instagram:** I
+ruled it out as the main path; copying the recipe yourself defeats the point. **A cost dashboard:** Claude planned
+one; I cut it, as logs were enough. Also TikTok, video downloads, a backup AI provider.
 
 ## What can go wrong, and what Reelish does
-- **Bad link, private/missing video, over 15 minutes:** a plain message, no AI cost.
-- **Not a recipe:** said plainly after one AI call. **No amounts given:** all shown "Not provided", with a
-  banner.
-- **Upstream error:** two retries, then a clear failure and a retry button.
-- **Worker crash mid-job:** the job resumes from cache after 30 s. Tested on the live server with a forced kill;
-  nothing was billed twice.
-- **Budget, credit or rate limit hit:** a "limited" message; saved recipes keep working.
-- **Instagram permission (the open risk):** it works through Supadata, an unofficial scraping service. We have
-  no permission from Meta or the creators, and paying a provider doesn't create one. It's on because the owner
-  accepted that risk; one setting turns it off.
 
-## Cost per recipe
-**About $0.01 of AI per new recipe:** $0.0052–0.0169 over 10 recipe runs (7 in development, 3 live).
-Instagram adds 1 Supadata credit. A non-recipe costs $0.002–0.007. Bad or too-long links and repeat visits
-cost $0. Total so far: $0.11 of the $20 budget.
+| Problem | What Reelish does |
+|---|---|
+| Bad or private link; video over 15 min | A plain message, before any AI cost |
+| Not a recipe, or no amounts anywhere | Says so; missing amounts show "Not provided" and can be added |
+| A service fails, or the worker crashes | One retry, then a retry button. Crashed jobs resume without paying twice |
+| Budget or rate limit reached | A "limited" message; saved recipes still work |
+
+**Main open risk: Instagram permission.** Reels are read through Supadata, a scraping service. That it works
+doesn't make it allowed: we have no permission from Meta or the creators. Claude advised keeping it off; I turned it on (capped, with an
+off switch) because the brief asks for Reels. A wider launch needs a permitted route first.
+
+**Cost per recipe:** about **$0.008 of AI** ($0.005–$0.017 over 10 runs), plus 1 Supadata credit per Reel. Bad
+links and repeats cost $0. Total AI spend: $0.11 of $20.
 
 ## With another week
-1. Watch real people cook from it. Nobody has yet.
-2. Run the harder videos we skipped: a 13-minute video, a no-talking video, other creators' Reels.
-3. Replace Instagram scraping with something allowed: "paste the caption", or creator opt-in.
-4. A free title-and-description pre-check, so obvious non-recipes cost nothing.
+
+1. **Watch 5–8 people cook with it.** Do they finish? When do they go back to the video? Are failures wrong
+   recipes or confusing screens? That decides whether extraction, Cook Mode or the idea itself comes next.
+2. **Move Instagram to a permitted route** (user-pasted captions, creator opt-in or Meta approval).
+3. **Test what we skipped** (a 13-minute video, more silent videos, Reels from other creators), and add a free
+   title check so obvious non-recipes cost nothing.

@@ -1,6 +1,6 @@
 # Deployment: Reelish on the shared VPS
 
-**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST. First release `4d6083c`; then `af44fbb` (start-form fix); `384b6e2` (brutalist redesign); now `12ff1e1` (UX pass). The previous
+**Status: live at <https://deepclean.app/reelish>** since 2026-11-22 IST. First release `4d6083c`; then `af44fbb` (start-form fix); `384b6e2` (brutalist redesign); `12ff1e1` (UX pass); now `e901a38` (silent Instagram Reels). The previous
 release is kept on the server for rollback. The server also runs
 DeepClean.app and a few other small apps owned by the same person. Reelish shares only the machine and the
 Nginx process.
@@ -71,7 +71,7 @@ INSTAGRAM_ENABLED=true       # owner accepted the permission risk, see PLATFORM-
 DAILY_AI_BUDGET_USD=0.50
 MAX_JOB_COST_USD=0.12
 RATE_LIMIT_PER_HOUR=6
-SUPADATA_DAILY_CREDITS=10
+SUPADATA_DAILY_CREDITS=25    # raised from 10 on 2026-11-22: a silent Reel needs about 8
 SUPADATA_MONTHLY_CREDITS=60
 SUPADATA_MAX_JOB_CREDITS=12
 ```

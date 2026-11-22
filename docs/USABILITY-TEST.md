@@ -12,7 +12,7 @@ after a session; don't summarise results that weren't observed.
     `https://www.instagram.com/reel/DWZqrugEacU/`
   - **Creamy vegetable soup** (YouTube Short, ~40 min): `https://www.youtube.com/shorts/VTR8vxBFGDY`
 - **Optional second, short task:** a partial recipe (the Kaju Short, `https://www.youtube.com/shorts/s4na199iyag`)
-  just to look at, not cook. It tests how "Not specified" is understood.
+  just to look at, not cook. It tests how "Not provided" is understood.
 - **Before they arrive:** open the recipe once yourself, so it's cached and costs nothing during the session.
 - **For you:** this sheet, a timer, and a way to note times. Ask before taking any photos.
 
@@ -34,7 +34,7 @@ after a session; don't summarise results that weren't observed.
    - "What was the most annoying moment?"
    - "Was anything on screen wrong or confusing?"
    - "Would you use this next time instead of the video? Why or why not?"
-   - "What did 'Not specified' / 'Suggested' mean to you?"
+   - "What did 'Not provided' / 'Estimated' mean to you?"
 
 ## Observation sheet
 
@@ -46,7 +46,7 @@ Note the time and the exact words when something happens. Mark ✓ / ✗ / n/a.
 | 2 | Understood the wait (progress page), didn't leave or reload | | Wait time: |
 | 3 | Could tell within ~5 s whether the recipe was complete | | |
 | 4 | Used the checklist to gather ingredients | | |
-| 5 | Understood the amount labels ("Confirmed from creator" / "Not specified") | | |
+| 5 | Understood the amount labels ("From the creator" / "Estimated" / "Not provided") | | |
 | 6 | Found how to edit an amount, and the edit showed in Cook Mode | | |
 | 7 | Found "Start cooking" without searching | | |
 | 8 | Screen stayed on while cooking (wake lock) | | |

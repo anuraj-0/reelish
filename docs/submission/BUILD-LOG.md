@@ -1,75 +1,69 @@
-# Build log
+# Reelish: build log
 
-## Tools
-- **Claude Code** (Claude Opus 5.5) for planning, code, tests and docs. Every commit is co-authored.
-- **App:**
-  - Next.js 16 (App Router, Cache Components), React 19, Tailwind 4, shadcn/ui, Zod.
-  - SQLite via Node's built-in `node:sqlite`.
-  - `tsx` for the worker.
-- **Tests:** Vitest (unit and integration, with mocked APIs), Playwright and axe-core (phone and desktop journeys).
-- **External services:**
-  - OpenRouter → `google/gemini-3.5-flash-lite` (pinned to Google AI Studio);
-  - YouTube Data API;
-  - Supadata (Instagram).
-- **Feasibility spike:** Python scripts (`spike/`).
-- **Deployment:** Next.js standalone output, esbuild (one-file worker bundle), systemd, Nginx, existing Let's
-  Encrypt certificate, a small VPS shared with DeepClean.app.
+## Tools used
 
-## Time
-**Estimate, not a measurement: about 8–10 hours in total.** Working time wasn't tracked with a timer.
+| Area | Tools |
+|---|---|
+| AI coding assistant | Claude Code (Claude Opus 5.5): research, planning, code, tests and docs |
+| App | Next.js 16, React 19, Tailwind 4, shadcn/ui, Zod, SQLite |
+| AI model | Gemini 3.5 Flash Lite, called through OpenRouter |
+| Video data | YouTube Data API (YouTube), Supadata (Instagram) |
+| Testing | Vitest (unit and integration), Playwright and axe-core (browser and accessibility) |
+| Hosting | A small existing VPS with systemd and Nginx |
 
-How the estimate was made:
-- The Claude Code transcripts for this project have message timestamps from 21 Nov 2026 17:33 IST to 22 Nov
-  about 15:30 IST. Counting only stretches with no gap over 15 minutes gives **about 7.5 hours of active
-  session time**:
-  - 4.4 h spike through M3,
-  - 0.7 h M4 review,
-  - about 1.8 h deployment, final documents and the visual redesign,
-  - about 0.6 h two short fix sessions (a Back-button bug, a UX and wording pass).
-- That is session time, not the person's effort. Claude worked for long stretches inside single turns, and
-  some time was spent outside the sessions (accounts and API keys, reading outputs, decisions). The 8–10 h range
-  allows for that, but it's a judgment.
+## Time spent
 
-What the repository shows:
-- 21 November 2026: commits run from 18:24 to 23:44 IST (milestones M0–M3), with a gap between about 20:10 and
-  22:30 that has no commits.
-- 21–22 November: further commits up to about 15:00 IST on 22 Nov: M4 evaluation and production review, the Cook
-  Mode and wording fixes, deployment and the final documents, then the visual redesign and a UX pass.
+About **8–10 hours** over 21–22 November 2026. This is an estimate, not timed: the Claude Code session
+timestamps show about 7.5 hours of active work, plus some time outside the sessions.
 
-That's a range of commit times, not hours worked:
-- It leaves out time before the first commit (spike, planning) and time between sessions.
-- Much of the work was done by Claude Code in long-running turns, so the span doesn't reflect the person's own
-  effort either.
+## How the work was split
 
-## Where AI helped
-**Finding an invisible bug in real captions (M3).**
-- On the live Instagram runs, the soup Reel's "Comment 'recipe'" line never scored its recipe link, although
-  the two looked adjacent.
-- Claude found that the caption's "blank" lines were U+2800 Braille-blank characters, so they didn't count as
-  empty. It added a fix and a test from the real caption.
-- That would have been a slow one to find by eye, because the characters render as nothing.
+**What I did:** set the problem and the constraints, and made the product calls. I kept both platforms in
+scope, chose the two-view design Claude recommended, and made the creator's text the core of the pipeline after
+the first tests showed the video alone lacked amounts. I set the spending rules: each paid test needed my approval
+first, under a $0.20 cap. I set the bar for evidence ("don't treat a syntax check as a successful test"). I kept the
+plan to build the UI on saved recipes first, so the experience could be judged apart from extraction quality. Some
+calls went against Claude's suggestions: a 15-minute video limit instead of 30, no cost dashboard, and Instagram
+turned on publicly.
+
+**What Claude Code did:** the competitor and feasibility research, the options and trade-offs, the architecture,
+all of the code and tests, the debugging, and first drafts of these documents. I reviewed its results and sent
+work back when it wasn't good enough.
+
+**Checking its work:** Claude scored every recipe against the creator's written text and labelled what it
+couldn't check as "not verified". I found one bug myself by using the live site: the home page got stuck on a loading
+spinner. Claude traced it to pressing Back after opening a recipe, then fixed it and added a test (`af44fbb`).
+
+## Where AI saved time
+
+**Finding an invisible character in a real caption.**
+One Instagram caption had a recipe link that the app kept ignoring. The text looked normal. Claude found that
+the "blank" lines in the caption weren't really blank: they held an invisible Unicode character (U+2800), so
+the app didn't treat them as empty lines. Claude fixed it and added a test based on the real caption. This
+would have been very hard to spot by eye, because the character shows up as nothing.
 
 ## Where AI led us astray
-**Code that passed every test but would have broken in production.**
-- Claude wrote the no-JavaScript start form (`7d477e3`) with an absolute redirect built from `request.url`. It
-  also wrote the rate limiter (`46b60f2`), which took the *first* `X-Forwarded-For` address.
-- Both passed unit and e2e tests, because those run on `localhost` with no proxy.
-- In M4 we ran the production build with Nginx-style headers. The form redirected visitors to
-  `https://localhost:3200/…`, and the first `X-Forwarded-For` entry is whatever the visitor sends, so the
-  per-visitor limit could be dodged.
-- Both are fixed with tests (`d0d4ed6`, `f473083`).
 
-**The lesson:** "all tests pass" said nothing about the environment the tests didn't model. The fix was to test
-the deployed shape (built app, proxy headers), not to write more tests of the same kind.
+**1. Code that passed every test but broke in production.**
+- **What happened:** Claude wrote two pieces of code that worked in testing but not behind a real web server.
+  The start form sent visitors to `https://localhost:3200/…` instead of the real site. The rate limiter could be
+  bypassed, because it trusted an address that the visitor can fake.
+- **Why the tests missed it:** all tests ran on `localhost` with no web server in front, so neither problem
+  could appear.
+- **How we caught it:** we ran the production build behind a simulated web server before deploying.
+- **Fix:** both were fixed, with tests (commits `d0d4ed6` and `f473083`).
+- **Lesson: automated tests only check the conditions they simulate.** Testing the app in its real setup found
+  what more of the same tests could not.
 
-A smaller one from the deployment day:
-- Unknown recipe links returned 500 behind Nginx. Claude's first fix, a code workaround based on a misreading of
-  Next.js internals, didn't work and cost three rebuilds.
-- The real fix was one Nginx line: stop sending `X-Forwarded-Proto`, which Reelish never used. It was found by
-  reproducing the request with and without each header.
+**2. A wrong guess that cost three rebuilds.**
+- **What happened:** on the live site, opening an unknown recipe link showed a server error instead of a "not
+  found" page. Claude's first fix was based on a wrong reading of how Next.js works. It didn't help, and cost
+  three rebuilds.
+- **Fix:** we tested the request with and without each header the web server sends, and found the cause. The
+  real fix was one line of web server config.
 
-Another from M3:
-- A link-scoring change let the line "his new book: http://…" inherit the "Recipe here:" context from the line
-  above.
-- The regression was caught and fixed in the same session: a line that holds its own link no longer gives
-  context.
+**3. A fix that caused a new bug.**
+- **What happened:** a change to how recipe links are found let a link to a book ("his new book: http://…")
+  look like the recipe link, because it came right after a "Recipe here:" line.
+- **Fix:** caught and fixed in the same session. A line with its own link no longer borrows meaning from the
+  line above it.
